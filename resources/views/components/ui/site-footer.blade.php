@@ -20,6 +20,7 @@
             <div>
                 <h2 class="text-xs font-bold uppercase tracking-[0.16em] text-tilawa-amber">Tilawa</h2>
                 <nav aria-label="Information links" class="mt-5 flex flex-col gap-4 text-sm text-white/80">
+                    <button type="button" data-install-tilawa hidden class="text-left hover:text-white">Install Tilawa app</button>
                     <a href="{{ route('landing') }}#about" class="hover:text-white">About the experience</a>
                     <a href="{{ route('privacy') }}" wire:navigate class="hover:text-white">Privacy Policy</a>
                     <a href="{{ route('terms') }}" wire:navigate class="hover:text-white">Terms of Service</a>

@@ -4,14 +4,14 @@
         <section class="relative overflow-hidden rounded-b-[2rem] bg-tilawa-paper sm:rounded-b-[4rem]">
             <div class="mx-auto grid max-w-6xl items-center gap-10 px-6 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10 lg:py-20">
                 <div>
-                    <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-tilawa-teal-dark dark:text-tilawa-teal-light"><span class="h-1.5 w-1.5 rounded-full bg-tilawa-teal-dark"></span>Your daily companion for the Qur'an</p>
+                    {{-- <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-tilawa-teal-dark dark:text-tilawa-teal-light"><span class="h-1.5 w-1.5 rounded-full bg-tilawa-teal-dark"></span>Your daily companion for the Qur'an</p> --}}
                     <h1 class="mt-6 text-[2.7rem] font-extrabold leading-[1.15] tracking-tight text-tilawa-ink sm:text-6xl lg:text-[4.1rem]">Make room for<br>the <span class="text-tilawa-teal-dark dark:text-tilawa-teal-light">Qur'an.</span></h1>
                     <p class="mt-6 max-w-md text-base leading-8 text-tilawa-sub">A few ayahs. A quiet moment. Read and reflect with clear Arabic, translations, and gentle guidance, wherever you are in your journey.</p>
                     <div class="mt-8 flex flex-wrap items-center gap-5">
                         <a href="{{ route('home') }}" wire:navigate class="inline-flex items-center gap-3 rounded-full bg-tilawa-teal-dark px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tilawa-teal-dark dark:focus-visible:outline-tilawa-teal-light">Browse all surahs <x-ui.icon name="arrow-right" class="h-4 w-4" /></a>
                         <a href="{{ route('surah.show', 1) }}" wire:navigate class="inline-flex items-center gap-2 text-sm font-bold text-tilawa-ink underline decoration-tilawa-gold/50 underline-offset-8 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tilawa-teal-dark dark:focus-visible:outline-tilawa-teal-light">Read Al-Fatihah</a>
                     </div>
-                    <p class="mt-5 text-xs leading-6 text-tilawa-sub">No account needed. Just open a surah and begin.</p>
+                    {{-- <p class="mt-5 text-xs leading-6 text-tilawa-sub">No account needed. Just open a surah and begin.</p> --}}
                     <div class="mt-10 flex gap-8 border-t border-tilawa-gold/20 pt-6 text-tilawa-ink">
                         <div><span class="text-2xl font-extrabold">114</span><span class="mt-1 block text-xs text-tilawa-sub">Surahs to explore</span></div>
                         <div><span class="text-2xl font-extrabold">3</span><span class="mt-1 block text-xs text-tilawa-sub">Translation options</span></div>

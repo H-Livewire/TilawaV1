@@ -8,6 +8,7 @@
     <title>{{ $title ?? 'Tilawa' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <x-ui.pwa-head />
 </head>
 <body class="min-h-screen bg-[#F4FAFA] font-sans text-tilawa-ink antialiased">
     <header class="flex items-center justify-between bg-tilawa-teal px-6 py-4 md:px-12">

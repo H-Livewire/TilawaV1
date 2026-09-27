@@ -19,6 +19,7 @@
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <x-ui.pwa-head />
 </head>
 <body class="bg-white font-sans text-tilawa-ink antialiased dark:bg-[#101c20]">
     {{ $slot }}
