@@ -32,6 +32,7 @@
 
     <main>{{ $slot }}</main>
 
+    <x-ui.pwa-install />
     @livewireScripts
 </body>
 </html>

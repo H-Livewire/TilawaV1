@@ -23,6 +23,7 @@
 </head>
 <body class="bg-white font-sans text-tilawa-ink antialiased dark:bg-[#101c20]">
     {{ $slot }}
+    <x-ui.pwa-install />
     @livewireScripts
 </body>
 </html>
