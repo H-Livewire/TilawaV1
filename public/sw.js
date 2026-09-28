@@ -1,5 +1,5 @@
-const CACHE = 'tilawa-offline-v1';
-const ASSETS = ['/offline.html', '/pwa/icon-192.png', '/pwa/icon-512.png', '/pwa/icon-180.png'];
+const CACHE = 'tilawa-offline-v2';
+const ASSETS = ['/offline.html', '/pwa/icon-v2-192.png', '/pwa/icon-v2-512.png', '/pwa/icon-v2-180.png'];
 
 self.addEventListener('install', event => {
     event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
