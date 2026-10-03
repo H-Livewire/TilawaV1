@@ -105,3 +105,37 @@ html.dark .tajweed-group-silent { color: #9ca3af; }
 .word-token.word-token-selected {
     background-color: color-mix(in srgb, var(--color-tilawa-teal) 22%, transparent);
 }
+
+/* ---------------------------------------------------------------------
+   Islamic Library & Physical Book Reader
+   ------------------------------------------------------------------- */
+.perspective-1000 {
+    perspective: 1000px;
+}
+.perspective-1800 {
+    perspective: 1800px;
+}
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    .page-break-after {
+        page-break-after: always;
+        break-after: page;
+    }
+    .page-break-inside-avoid {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+

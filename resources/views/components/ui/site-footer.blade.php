@@ -15,6 +15,8 @@
                     <a href="{{ route('surah.show', 1) }}" wire:navigate class="hover:text-white">Start with Al-Fatihah</a>
                     <a href="{{ route('juz.show', 1) }}" wire:navigate class="hover:text-white">Read by juz</a>
                     <a href="{{ route('page.show', 1) }}" wire:navigate class="hover:text-white">Read by page</a>
+                    <a href="{{ route('library.index') }}" wire:navigate class="hover:text-white">Islamic Library</a>
+                    <a href="{{ route('library.book', 'hisn-al-muslim') }}" wire:navigate class="hover:text-white">Hisn al-Muslim (Ngome)</a>
                 </nav>
             </div>
             <div>

@@ -11,6 +11,9 @@ use App\Livewire\Juz;
 use App\Livewire\Landing;
 use App\Livewire\Legal\Privacy;
 use App\Livewire\Legal\Terms;
+use App\Livewire\Library\Index as LibraryIndex;
+use App\Livewire\Library\PrintBook;
+use App\Livewire\Library\Reader as LibraryReader;
 use App\Livewire\Page;
 use App\Livewire\Profile;
 use App\Livewire\Reading;
@@ -28,6 +31,10 @@ Route::get('/ruqyah', Ruqyah::class)->name('ruqyah');
 Route::get('/surah/{number}', Reading::class)->name('surah.show');
 Route::get('/page/{number}', Page::class)->name('page.show');
 Route::get('/juz/{number}', Juz::class)->name('juz.show');
+
+Route::get('/library', LibraryIndex::class)->name('library.index');
+Route::get('/library/{slug}', LibraryReader::class)->name('library.book');
+Route::get('/library/{slug}/print', PrintBook::class)->name('library.book.print');
 
 Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->middleware('throttle:10,1')->name('auth.google.redirect');
