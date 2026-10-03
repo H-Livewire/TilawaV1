@@ -4,6 +4,7 @@ use App\Livewire\Reading;
 use App\Models\User;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -437,3 +438,79 @@ test('clients cannot alter the reader pagination size', function () {
     fakeSurahReadingEndpoints();
     Livewire::actingAs(User::factory()->create())->test(Reading::class, ['number' => 1])->set('perPage', 0);
 })->throws(CannotUpdateLockedPropertyException::class);
+
+test('re-opening a surah without an ayah link keeps the reader\'s saved place in it', function () {
+    fakePaginatedSurah();
+
+    $user = User::factory()->create(['last_read_surah' => 6, 'last_read_ayah' => 11]);
+
+    Livewire::actingAs($user)->test(Reading::class, ['number' => 6]);
+
+    expect($user->fresh()->last_read_surah)->toBe(6);
+    expect($user->fresh()->last_read_ayah)->toBe(11);
+});
+
+test('opening a different surah moves the saved place to it', function () {
+    fakePaginatedSurah();
+
+    $user = User::factory()->create(['last_read_surah' => 2, 'last_read_ayah' => 40]);
+
+    Livewire::actingAs($user)->test(Reading::class, ['number' => 6]);
+
+    expect($user->fresh()->last_read_surah)->toBe(6);
+    expect($user->fresh()->last_read_ayah)->toBe(1);
+});
+
+test('the bismillah heading only appears where the surah begins', function () {
+    fakePaginatedSurah();
+
+    $bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+
+    $component = Livewire::actingAs(User::factory()->create())
+        ->test(Reading::class, ['number' => 6])
+        ->assertSee($bismillah);
+
+    $component->call('nextPage')->assertDontSee($bismillah);
+
+    $component->call('setMode', 'mushaf')->assertSee('Mushaf page 101')->assertDontSee($bismillah);
+    $component->call('previousMushafPage')->assertSee($bismillah);
+});
+
+test('toggling a bookmark that already exists removes it instead of failing on the unique index', function () {
+    fakeSurahReadingEndpoints();
+
+    $user = User::factory()->create();
+    $user->bookmarks()->create(['surah_number' => 1, 'surah_name' => 'Al-Fatihah', 'ayah_number' => 1, 'ayah_text' => 'x']);
+
+    Livewire::actingAs($user)
+        ->test(Reading::class, ['number' => 1])
+        ->call('toggleBookmark', 1)
+        ->assertOk();
+
+    expect($user->bookmarks()->count())->toBe(0);
+});
+
+test('a racing duplicate bookmark insert is absorbed rather than surfacing a 500', function () {
+    fakeSurahReadingEndpoints();
+
+    $user = User::factory()->create();
+    $component = Livewire::actingAs($user)->test(Reading::class, ['number' => 1]);
+
+    // Simulate the second of two concurrent requests: its delete saw nothing,
+    // then the first request's insert landed before its own insert ran.
+    $raced = false;
+    DB::listen(function ($query) use ($user, &$raced): void {
+        if (! $raced && str_starts_with(strtolower($query->sql), 'delete from "bookmarks"')) {
+            $raced = true;
+            DB::table('bookmarks')->insert([
+                'user_id' => $user->id, 'surah_number' => 1, 'surah_name' => 'Al-Fatihah',
+                'ayah_number' => 1, 'ayah_text' => 'x', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+    });
+
+    $component->call('toggleBookmark', 1)->assertOk();
+
+    expect($raced)->toBeTrue();
+    expect($user->bookmarks()->where('surah_number', 1)->where('ayah_number', 1)->count())->toBe(1);
+});

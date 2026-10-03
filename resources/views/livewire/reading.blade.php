@@ -76,7 +76,11 @@
 
     {{-- Content --}}
     <div class="px-6 py-6 md:px-12 md:py-8">
-        @if (! in_array($number, [1, 9], true))
+        @php
+            // Only where the surah actually begins: the first ayat page, or the mushaf page holding ayah 1.
+            $showsFirstAyah = $mode === 'ayat' ? $page === 1 : (($this->mushafAyahs[0]['number'] ?? null) === 1);
+        @endphp
+        @if ($showsFirstAyah && ! in_array($number, [1, 9], true))
             <div class="mx-auto mb-8 max-w-3xl text-center">
                 <p class="font-arabic text-3xl font-bold leading-relaxed text-tilawa-teal-dark">
                     بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ

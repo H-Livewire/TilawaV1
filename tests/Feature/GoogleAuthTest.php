@@ -79,3 +79,10 @@ test('Google sign-in stays unavailable until credentials are configured', functi
     $this->get(route('auth.google.redirect'))->assertRedirect(route('login'))->assertSessionHasErrors('google');
     $this->get(route('login'))->assertOk()->assertSee('Continue as a guest')->assertSee('Google sign-in will be available soon');
 });
+
+test('a new Google account is marked as having no password of its own', function () {
+    Socialite::fake('google', googleReader('google-no-password', 'nopass@gmail.com'));
+    $this->withSession(['google.remember' => false])->get(route('auth.google.callback', ['code' => 'test-code']));
+
+    expect(User::where('google_id', 'google-no-password')->first()->has_password)->toBeFalse();
+});

@@ -150,3 +150,14 @@ test('a user can turn tajweed highlighting on while reading a juz', function () 
 
     expect($user->fresh()->tajweed_enabled)->toBeTrue();
 });
+
+test('re-opening a juz keeps a saved place that is already inside it', function () {
+    fakeJuzEndpoints();
+
+    $user = User::factory()->create(['last_read_surah' => 2, 'last_read_ayah' => 1]);
+
+    Livewire::actingAs($user)->test(Juz::class, ['number' => 1]);
+
+    expect($user->fresh()->last_read_surah)->toBe(2);
+    expect($user->fresh()->last_read_ayah)->toBe(1);
+});

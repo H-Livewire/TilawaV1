@@ -25,6 +25,9 @@ class Profile extends Component
 
     public string $delete_password = '';
 
+    /** Accounts created with Google have no known password — they confirm deletion by typing their email instead. */
+    public string $delete_confirmation = '';
+
     public function mount(): void
     {
         $this->name = Auth::user()->name;
@@ -47,14 +50,21 @@ class Profile extends Component
 
     public function updatePassword(): void
     {
-        $validated = $this->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);
+        $user = Auth::user();
 
-        Auth::user()->update([
+        $rules = ['password' => ['required', 'confirmed', Password::defaults()]];
+
+        // Google-created accounts never had a password to confirm, so they set their first one directly.
+        if ($user->has_password) {
+            $rules['current_password'] = ['required', 'current_password'];
+        }
+
+        $validated = $this->validate($rules);
+
+        $user->forceFill([
             'password' => $validated['password'],
-        ]);
+            'has_password' => true,
+        ])->save();
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
 
@@ -70,16 +80,27 @@ class Profile extends Component
     {
         $this->confirmingDeletion = false;
         $this->delete_password = '';
-        $this->resetErrorBag('delete_password');
+        $this->delete_confirmation = '';
+        $this->resetErrorBag(['delete_password', 'delete_confirmation']);
     }
 
     public function deleteAccount(): void
     {
-        $this->validate([
-            'delete_password' => ['required', 'current_password'],
-        ]);
-
         $user = Auth::user();
+
+        if ($user->has_password) {
+            $this->validate([
+                'delete_password' => ['required', 'current_password'],
+            ]);
+        } else {
+            $this->validate([
+                'delete_confirmation' => ['required', 'string', function (string $attribute, mixed $value, \Closure $fail) use ($user): void {
+                    if (mb_strtolower(trim((string) $value)) !== mb_strtolower($user->email)) {
+                        $fail('Type your account email address exactly to confirm.');
+                    }
+                }],
+            ]);
+        }
 
         Auth::logout();
 
@@ -99,6 +120,7 @@ class Profile extends Component
 
         return view('livewire.profile', [
             'bookmarkCount' => $user ? $user->bookmarks()->count() : 0,
+            'hasPassword' => (bool) $user?->has_password,
         ]);
     }
 }

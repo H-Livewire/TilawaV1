@@ -70,6 +70,7 @@ class GoogleAuthController extends Controller
                     'email' => $email,
                     'email_verified_at' => now(),
                     'password' => Str::random(64),
+                    'has_password' => false,
                 ])->save();
 
                 return $user;

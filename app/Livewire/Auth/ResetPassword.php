@@ -50,7 +50,7 @@ class ResetPassword extends Component
             'password_confirmation' => $this->password_confirmation,
             'token' => $this->token,
         ], function (User $user, string $password): void {
-            $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+            $user->forceFill(['password' => $password, 'has_password' => true, 'remember_token' => Str::random(60)])->save();
             event(new PasswordResetEvent($user));
         });
 

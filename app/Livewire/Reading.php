@@ -63,6 +63,7 @@ class Reading extends Component
             // this request/lifecycle, so render() and every computed prop
             // below reuse the result instead of hitting the API again.
             $this->surahList;
+            $hasExplicitTarget = request()->query('ayah') !== null;
             $target = request()->query('ayah', 1);
             abort_unless(is_scalar($target) && filter_var($target, FILTER_VALIDATE_INT) !== false, 404);
             $target = (int) $target;
@@ -70,7 +71,12 @@ class Reading extends Component
             abort_unless($ayah, 404);
             $this->page = (int) ceil($target / $this->perPage);
             $this->mushafStep = array_search($ayah['page'], $this->mushafPageNumbers, true) + 1;
-            $this->recordLastRead($target);
+
+            // Opening a surah without a specific ayah must not rewind progress
+            // the reader already has inside this same surah back to ayah 1.
+            if ($hasExplicitTarget || ! $this->hasProgressInThisSurah()) {
+                $this->recordLastRead($target);
+            }
         } catch (QuranApiException) {
             $this->apiUnavailable = true;
         }
@@ -161,20 +167,23 @@ class Reading extends Component
             return;
         }
 
-        $query = Auth::user()->bookmarks()
+        // Delete-then-createOrFirst instead of exists()-then-create(): a rapid
+        // double tap (two requests racing) can no longer trip the unique
+        // (user, surah, ayah) index and surface a 500 error.
+        $removed = Auth::user()->bookmarks()
             ->where('surah_number', $this->number)
-            ->where('ayah_number', $ayahNumber);
+            ->where('ayah_number', $ayahNumber)
+            ->delete();
 
-        if ($query->exists()) {
-            $query->delete();
-
+        if ($removed > 0) {
             return;
         }
 
-        Auth::user()->bookmarks()->create([
+        Auth::user()->bookmarks()->createOrFirst([
             'surah_number' => $this->number,
-            'surah_name' => $this->surah['englishName'],
             'ayah_number' => $ayahNumber,
+        ], [
+            'surah_name' => $this->surah['englishName'],
             'ayah_text' => $ayah['arabic'],
         ]);
     }
@@ -185,6 +194,11 @@ class Reading extends Component
     protected function recordLastRead(int $ayahNumber): void
     {
         app(ReadingState::class)->recordProgress($this->number, $ayahNumber);
+    }
+
+    protected function hasProgressInThisSurah(): bool
+    {
+        return (int) (app(ReadingState::class)->progress()['surah'] ?? 0) === $this->number;
     }
 
     public function goToSurah(int $number): void

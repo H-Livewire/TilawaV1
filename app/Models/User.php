@@ -25,6 +25,15 @@ class User extends Authenticatable
         'password',
     ];
 
+    /**
+     * Mirrors the column default so freshly created models know it before a reload.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'has_password' => true,
+    ];
+
     public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
@@ -55,6 +64,7 @@ class User extends Authenticatable
             'last_read_surah' => 'integer',
             'last_read_ayah' => 'integer',
             'tajweed_enabled' => 'boolean',
+            'has_password' => 'boolean',
         ];
     }
 }

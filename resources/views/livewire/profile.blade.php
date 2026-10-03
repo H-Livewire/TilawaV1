@@ -64,8 +64,10 @@
 
             {{-- Change password --}}
             <div class="rounded-2xl border border-tilawa-line bg-tilawa-surface p-6">
-                <h2 class="text-base font-bold text-tilawa-ink">Change password</h2>
-                <p class="mt-1 text-sm text-tilawa-sub">Use a strong password you don't use elsewhere.</p>
+                <h2 class="text-base font-bold text-tilawa-ink">{{ $hasPassword ? 'Change password' : 'Set a password' }}</h2>
+                <p class="mt-1 text-sm text-tilawa-sub">
+                    {{ $hasPassword ? "Use a strong password you don't use elsewhere." : 'You signed up with Google. Add a password to also sign in with your email.' }}
+                </p>
 
                 @if (session('password-updated'))
                     <div class="mt-4 flex items-center gap-2 rounded-xl bg-tilawa-mint/40 px-4 py-2.5 text-sm font-semibold text-tilawa-teal-dark">
@@ -75,8 +77,10 @@
                 @endif
 
                 <form wire:submit="updatePassword" class="mt-4 flex flex-col gap-4">
-                    <x-ui.text-field label="Current password" name="current_password" type="password" icon="lock"
-                        wire:model="current_password" />
+                    @if ($hasPassword)
+                        <x-ui.text-field label="Current password" name="current_password" type="password" icon="lock"
+                            wire:model="current_password" />
+                    @endif
                     <x-ui.text-field label="New password" name="password" type="password" icon="lock"
                         wire:model="password" />
                     <x-ui.text-field label="Confirm new password" name="password_confirmation" type="password" icon="lock"
@@ -104,8 +108,13 @@
                     </button>
                 @else
                     <form wire:submit="deleteAccount" class="mt-4 flex flex-col gap-4">
-                        <x-ui.text-field label="Confirm your password to continue" name="delete_password" type="password"
-                            icon="lock" wire:model="delete_password" placeholder="Your current password" />
+                        @if ($hasPassword)
+                            <x-ui.text-field label="Confirm your password to continue" name="delete_password" type="password"
+                                icon="lock" wire:model="delete_password" placeholder="Your current password" />
+                        @else
+                            <x-ui.text-field label="Type your email address to confirm" name="delete_confirmation" type="email"
+                                icon="mail" wire:model="delete_confirmation" placeholder="{{ auth()->user()?->email }}" autocomplete="off" />
+                        @endif
 
                         <div class="flex items-center gap-3">
                             <button type="submit"

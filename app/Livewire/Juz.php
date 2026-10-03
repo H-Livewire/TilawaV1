@@ -56,7 +56,9 @@ class Juz extends Component
         try {
             $firstAyah = $this->pagedAyahs[0] ?? null;
 
-            if ($firstAyah) {
+            // Re-opening a juz/page the reader is already partway through
+            // must not rewind their saved progress to its first ayah.
+            if ($firstAyah && ! $this->hasProgressInThisSection()) {
                 $this->recordLastRead($firstAyah['surahNumber'], $firstAyah['number']);
             }
         } catch (QuranApiException) {
@@ -78,6 +80,19 @@ class Juz extends Component
             $this->page--;
             $this->recordCurrentPageAsLastRead();
         }
+    }
+
+    protected function hasProgressInThisSection(): bool
+    {
+        $progress = app(ReadingState::class)->progress();
+
+        if (! $progress) {
+            return false;
+        }
+
+        return collect($this->juz['ayahs'])->contains(
+            fn (array $ayah): bool => $ayah['surahNumber'] === (int) $progress['surah'] && $ayah['number'] === (int) $progress['ayah']
+        );
     }
 
     protected function recordCurrentPageAsLastRead(): void
@@ -121,20 +136,23 @@ class Juz extends Component
             return;
         }
 
-        $query = Auth::user()->bookmarks()
+        // Delete-then-createOrFirst instead of exists()-then-create(): a rapid
+        // double tap (two requests racing) can no longer trip the unique
+        // (user, surah, ayah) index and surface a 500 error.
+        $removed = Auth::user()->bookmarks()
             ->where('surah_number', $surahNumber)
-            ->where('ayah_number', $ayahNumber);
+            ->where('ayah_number', $ayahNumber)
+            ->delete();
 
-        if ($query->exists()) {
-            $query->delete();
-
+        if ($removed > 0) {
             return;
         }
 
-        Auth::user()->bookmarks()->create([
+        Auth::user()->bookmarks()->createOrFirst([
             'surah_number' => $surahNumber,
-            'surah_name' => $ayah['surahName'],
             'ayah_number' => $ayahNumber,
+        ], [
+            'surah_name' => $ayah['surahName'],
             'ayah_text' => $ayah['arabic'],
         ]);
     }
