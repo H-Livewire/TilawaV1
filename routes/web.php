@@ -32,6 +32,8 @@ Route::get('/library/hisnul-muslim/pdf', LibraryPdfController::class)->name('lib
 
 Route::get('/library/hisnul-muslim/swahili/read', [LibraryPdfController::class, 'reader'])->defaults('edition', 'swahili')->name('library.hisnul-muslim.swahili.reader');
 Route::get('/library/hisnul-muslim/swahili/pdf', LibraryPdfController::class)->defaults('edition', 'swahili')->name('library.hisnul-muslim.swahili.pdf');
+Route::get('/library/{edition}/read', [LibraryPdfController::class, 'reader'])->where('edition', '[a-z0-9-]+')->name('library.book.reader');
+Route::get('/library/{edition}/pdf', LibraryPdfController::class)->where('edition', '[a-z0-9-]+')->name('library.book.pdf');
 
 Route::get('/ruqyah', Ruqyah::class)->name('ruqyah');
 Route::view('/mushaf/reader', 'library.mushaf-reader')->name('mushaf.reader');

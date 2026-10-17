@@ -1,9 +1,15 @@
 # Islamic library reader
 
 The catalogue in `config/library.php` lists the English (193 pages) and Kiswahili
-(224 pages) Hisnul Muslim editions. Original PDFs live in
+(224 pages) Hisnul Muslim editions plus twelve Kiswahili books (Qur’an translation,
+tafsir, swala, tajweed, adhkar and more). Original PDFs live in
 `storage/app/private/library/`; the controller serves only catalogue entries,
-with byte-range support. Both editions use the same PDF.js/StPageFlip reader.
+with byte-range support. Every book uses the same PDF.js/StPageFlip reader.
+
+To add a book, copy its PDF into `storage/app/private/library/`, add a 637×900 cover
+to `public/images/library/`, and add an entry (`title`, `language`, `pages`, `file`,
+`cover`, `download_name`) under a lowercase slug in `config/library.php`. The reader is
+then available at `/library/{slug}/read` with no further code.
 
 Run `npm ci` and `npm run build` when deploying. The build automatically copies
 the installed PDF.js image decoders to `public/vendor/pdfjs/wasm/`. Deploy that

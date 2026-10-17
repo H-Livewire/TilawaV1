@@ -77,7 +77,7 @@ async function renderQueue() {
                 if (disposed || !desired.has(index)) continue;
                 const url = URL.createObjectURL(blob);
                 const img = new Image();
-                img.alt = `Hisnul Muslim, original PDF page ${index + 1}`;
+                img.alt = `${root.dataset.bookTitle}, original PDF page ${index + 1}`;
                 img.draggable = false;
                 img.src = url;
                 await img.decode();

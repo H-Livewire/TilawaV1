@@ -68,3 +68,44 @@ test('the Kiswahili endpoint preserves the supplied PDF and supports partial dow
     $this->withHeader('Range', 'bytes=0-99')->get(route('library.hisnul-muslim.swahili.pdf'))
         ->assertStatus(206)->assertHeader('Content-Length', '100');
 });
+
+test('the library lists every catalogue book with its own reader', function () {
+    $response = $this->get(route('library'))->assertOk();
+
+    foreach (config('library.books') as $edition => $book) {
+        $response->assertSee($book['title'])
+            ->assertSeeHtml(\App\Support\LibraryCatalogue::find($edition)['reader_url']);
+    }
+});
+
+test('every catalogue book has an installed PDF and a matching flip reader', function () {
+    foreach (config('library.books') as $edition => $book) {
+        $path = storage_path('app/private/library/'.$book['file']);
+        expect(is_file($path))->toBeTrue("{$book['file']} is missing");
+        expect(file_get_contents($path, false, null, 0, 5))->toBe('%PDF-');
+
+        $catalogued = \App\Support\LibraryCatalogue::find($edition);
+
+        $this->get($catalogued['reader_url'])
+            ->assertOk()
+            ->assertSee($book['title'])
+            ->assertSeeHtml('max="'.$book['pages'].'"')
+            ->assertSeeHtml($catalogued['pdf_url'])
+            ->assertSee('Previous page')
+            ->assertSee('Zoom in');
+
+        $this->get($catalogued['pdf_url'])
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'inline; filename="'.$book['download_name'].'"');
+    }
+});
+
+test('newly added books are served by slug and unknown slugs stay not found', function () {
+    $this->get(route('library.book.reader', 'tajweed'))->assertOk()->assertSee('Darasa la Elimu ya Tajwid');
+    $this->withHeader('Range', 'bytes=0-99')->get(route('library.book.pdf', 'tajweed'))
+        ->assertStatus(206)->assertHeader('Content-Length', '100');
+
+    $this->get('/library/not-a-book/read')->assertNotFound();
+    $this->get('/library/not-a-book/pdf')->assertNotFound();
+});
