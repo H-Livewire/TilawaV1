@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tilawa · Background color preview</title><style>
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;background:#12313a;color:white;height:100dvh;display:flex;flex-direction:column}header{padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}strong{margin-right:auto}button,select{font:inherit;padding:8px 14px;border:1px solid #77bfc6;border-radius:20px;background:transparent;color:white;cursor:pointer}button[aria-pressed=true]{background:#ddf2f0;color:#12313a}select{background:#12313a}iframe{width:100%;flex:1;border:0;background:white}small{color:#c5dedf}.swatch{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:middle}
+</style></head><body>
+<header><strong>Tilawa · Preview only</strong><small><i class="swatch" style="background:#f4fafa"></i>Background #F4FAFA &nbsp; <i class="swatch" style="background:#ddf2f0"></i>Footer #DDF2F0</small><select id="page" aria-label="Preview page"><option value="/">Homepage</option><option value="/home">All surahs</option><option value="/ruqyah">Ruqyah</option><option value="/login">Sign in</option></select><button id="light" aria-pressed="true">Light</button><button id="dark" aria-pressed="false">Dark</button></header>
+<iframe id="preview" src="/" title="Tilawa color preview"></iframe>
+<script>
+let dark=false;
+const frame=document.getElementById('preview');
+const css=`
+:root:not(.dark){--color-tilawa-paper:#F4FAFA;--color-tilawa-ink:#12313a;--color-tilawa-sub:#48666c;--color-tilawa-teal-dark:#116b75;--color-tilawa-gold:#826017}
+:root.dark{--color-tilawa-paper:#16282e;--color-tilawa-surface:#1c2b30;--color-tilawa-ink:#edf7f7;--color-tilawa-sub:#b4c9cd}
+.dark .text-tilawa-teal-dark{color:#8fe0e8}
+footer{background:#DDF2F0!important;color:#12313a!important}
+footer p,footer nav,footer nav a,footer nav button,footer .border-t{color:#36565c!important}
+footer h2,footer p.text-tilawa-amber{color:#12313a!important}
+footer .border-t{border-color:#b3d5d2!important}
+footer a:hover,footer button:hover{color:#084c55!important;text-decoration:underline}
+footer img{content:url('/images/tilawa-logo-dark.png')}
+`;
+function apply(){const doc=frame.contentDocument;if(!doc)return;doc.documentElement.classList.toggle('dark',dark);let style=doc.getElementById('theme-preview-styles');if(!style){style=doc.createElement('style');style.id='theme-preview-styles';doc.head.append(style)}style.textContent=css;document.getElementById('light').setAttribute('aria-pressed',!dark);document.getElementById('dark').setAttribute('aria-pressed',dark)}
+frame.addEventListener('load',()=>{apply();frame.contentDocument.addEventListener('livewire:navigated',apply)});
+document.getElementById('light').onclick=()=>{dark=false;apply()};document.getElementById('dark').onclick=()=>{dark=true;apply()};document.getElementById('page').onchange=e=>{frame.src=e.target.value};
+</script></body></html>

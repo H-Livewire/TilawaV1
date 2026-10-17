@@ -315,7 +315,7 @@ class QuranService
                 'number' => 'required|integer|in:'.$number,
                 'ayahs' => 'required|array|min:1',
                 'ayahs.*.numberInSurah' => 'required|integer|min:1',
-                'ayahs.*.page' => 'required|integer|between:1,604',
+                'ayahs.*.page' => $section === 'page' ? 'required|integer|in:'.$number : 'required|integer|between:1,604',
                 'ayahs.*.surah.number' => 'required|integer|between:1,114',
                 'ayahs.*.surah.name' => 'required|string',
                 'ayahs.*.surah.englishName' => 'required|string',

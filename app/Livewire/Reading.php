@@ -11,6 +11,7 @@ use App\Support\TajweedRules;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 class Reading extends Component
@@ -29,10 +30,6 @@ class Reading extends Component
     #[Locked]
     public int $perPage = 10;
 
-    /** Mushaf-mode pagination: a 1-based index into this surah's real printed-page numbers. */
-    #[Locked]
-    public int $mushafStep = 1;
-
     #[Locked]
     public bool $apiUnavailable = false;
 
@@ -43,6 +40,12 @@ class Reading extends Component
     /** Off by default — the reading page stays plain unless the user opts in. */
     #[Locked]
     public bool $tajweedEnabled = false;
+
+    #[Locked]
+    public int $physicalPage = 1;
+
+    #[Locked]
+    public int $focusedAyah = 1;
 
     public function mount(int $number): void
     {
@@ -69,8 +72,19 @@ class Reading extends Component
             $ayah = collect($this->surah['ayahs'])->firstWhere('number', $target);
             abort_unless($ayah, 404);
             $this->page = (int) ceil($target / $this->perPage);
-            $this->mushafStep = array_search($ayah['page'], $this->mushafPageNumbers, true) + 1;
-            $this->recordLastRead($target);
+            $this->focusedAyah = $target;
+            $this->physicalPage = $ayah['page'];
+            if (request()->query('view', session('reading.mode', 'ayat')) === 'mushaf') {
+                $this->mode = 'mushaf';
+                session(['reading.mode' => 'mushaf']);
+                $requestedPage = request()->query('mp', $this->physicalPage);
+                abort_unless(is_scalar($requestedPage) && filter_var($requestedPage, FILTER_VALIDATE_INT) !== false && $requestedPage >= 1 && $requestedPage <= 604, 404);
+                if (! $this->openMushafPage((int) $requestedPage, false, $this->number)) {
+                    $this->apiUnavailable = true;
+                }
+            } else {
+                $this->recordLastRead($target);
+            }
         } catch (QuranApiException) {
             $this->apiUnavailable = true;
         }
@@ -78,14 +92,82 @@ class Reading extends Component
 
     public function setMode(string $mode): void
     {
-        $ayah = $this->mode === 'ayat' ? ($this->pagedAyahs[0] ?? null) : ($this->mushafAyahs[0] ?? null);
-        $this->mode = in_array($mode, ['ayat', 'mushaf'], true) ? $mode : 'ayat';
-
-        if ($ayah) {
-            $this->page = (int) ceil($ayah['number'] / $this->perPage);
-            $this->mushafStep = array_search($ayah['page'], $this->mushafPageNumbers, true) + 1;
-            unset($this->pagedAyahs, $this->mushafAyahs, $this->currentMushafPageNumber);
+        $mode = in_array($mode, ['ayat', 'mushaf'], true) ? $mode : 'ayat';
+        if ($this->mode === $mode) {
+            return;
         }
+        if ($mode === 'mushaf') {
+            $anchor = collect($this->pagedAyahs)->firstWhere('number', $this->focusedAyah) ?? $this->pagedAyahs[0];
+            $this->physicalPage = $anchor['page'];
+        }
+        $this->mode = $mode;
+        session(['reading.mode' => $mode]);
+        $this->syncReaderUrl();
+    }
+
+    /** Load complete physical pages, including adjoining surahs. Never filter by selected surah. */
+    #[Renderless]
+    public function loadMushafPages(array $numbers): array
+    {
+        abort_unless(count($numbers) <= 8, 422);
+        $pages = [];
+        foreach (array_unique($numbers) as $number) {
+            abort_unless(is_int($number) && $number >= 1 && $number <= 604, 422);
+            try {
+                $page = app(QuranService::class)->getPage($number, $this->translationLanguage);
+            } catch (QuranApiException) {
+                return [];
+            }
+            $words = $tajweed = [];
+            try {
+                $words = app(WordService::class)->getPageWords($number);
+            } catch (QuranApiException) {
+                // Optional annotations must not prevent reading the original text.
+            }
+            if ($this->tajweedEnabled) {
+                try {
+                    $tajweed = app(TajweedService::class)->getPageTajweed($number);
+                } catch (QuranApiException) {
+                    // Fall back to the uncoloured Uthmani text.
+                }
+            }
+            $pages[$number] = view('components.mushaf-page', compact('page', 'words', 'tajweed'))->render();
+        }
+
+        return $pages;
+    }
+
+    public function openMushafPage(int $number, bool $updateUrl = true, ?int $preferredSurah = null): bool
+    {
+        abort_unless($number >= 1 && $number <= 604, 422);
+        try {
+            $data = app(QuranService::class)->getPage($number, $this->translationLanguage);
+        } catch (QuranApiException) {
+            return false;
+        }
+        $ayah = collect($data['ayahs'])->firstWhere('surahNumber', $preferredSurah) ?? $data['ayahs'][0];
+        $this->physicalPage = $number;
+        $this->focusedAyah = $ayah['number'];
+        $this->number = $ayah['surahNumber'];
+        unset($this->surah, $this->pagedAyahs, $this->wordsByAyah, $this->tajweedAyahs);
+        $this->page = (int) ceil($ayah['number'] / $this->perPage);
+        $this->recordLastRead($ayah['number']);
+        if ($updateUrl) {
+            $this->syncReaderUrl();
+        }
+
+        return true;
+    }
+
+    private function syncReaderUrl(): void
+    {
+        $parameters = ['number' => $this->number];
+        if ($this->mode === 'mushaf') {
+            $parameters += ['view' => 'mushaf', 'mp' => $this->physicalPage];
+        } else {
+            $parameters['ayah'] = $this->focusedAyah;
+        }
+        $this->dispatch('reader-location', url: route('surah.show', $parameters));
     }
 
     /**
@@ -114,7 +196,10 @@ class Reading extends Component
     {
         if ($this->page < $this->totalPages()) {
             $this->page++;
-            $this->recordLastRead($this->pagedAyahs[0]['number'] ?? 1);
+            unset($this->pagedAyahs);
+            $this->focusedAyah = $this->pagedAyahs[0]['number'] ?? 1;
+            $this->recordLastRead($this->focusedAyah);
+            $this->syncReaderUrl();
         }
     }
 
@@ -122,23 +207,24 @@ class Reading extends Component
     {
         if ($this->page > 1) {
             $this->page--;
-            $this->recordLastRead($this->pagedAyahs[0]['number'] ?? 1);
+            unset($this->pagedAyahs);
+            $this->focusedAyah = $this->pagedAyahs[0]['number'] ?? 1;
+            $this->recordLastRead($this->focusedAyah);
+            $this->syncReaderUrl();
         }
     }
 
     public function nextMushafPage(): void
     {
-        if ($this->mushafStep < $this->totalMushafSteps()) {
-            $this->mushafStep++;
-            $this->recordLastRead($this->mushafAyahs[0]['number'] ?? 1);
+        if ($this->physicalPage < 604) {
+            $this->openMushafPage($this->physicalPage + 1);
         }
     }
 
     public function previousMushafPage(): void
     {
-        if ($this->mushafStep > 1) {
-            $this->mushafStep--;
-            $this->recordLastRead($this->mushafAyahs[0]['number'] ?? 1);
+        if ($this->physicalPage > 1) {
+            $this->openMushafPage($this->physicalPage - 1);
         }
     }
 
@@ -191,7 +277,7 @@ class Reading extends Component
     {
         abort_unless($number >= 1 && $number <= 114, 404);
 
-        $this->redirectRoute('surah.show', ['number' => $number], navigate: true);
+        $this->redirectRoute('surah.show', array_filter(['number' => $number, 'view' => $this->mode === 'mushaf' ? 'mushaf' : null]), navigate: true);
     }
 
     #[Computed]
@@ -288,39 +374,6 @@ class Reading extends Component
     public function totalPages(): int
     {
         return (int) max(1, ceil(count($this->surah['ayahs']) / $this->perPage));
-    }
-
-    /** The distinct real Qur'an page numbers (1-604) this surah's ayahs fall on, in order. */
-    #[Computed]
-    public function mushafPageNumbers(): array
-    {
-        return collect($this->surah['ayahs'])->pluck('page')->unique()->values()->all();
-    }
-
-    #[Computed]
-    public function currentMushafPageNumber(): ?int
-    {
-        return $this->mushafPageNumbers[$this->mushafStep - 1] ?? null;
-    }
-
-    #[Computed]
-    public function mushafAyahs(): array
-    {
-        $pageNumber = $this->currentMushafPageNumber;
-
-        if ($pageNumber === null) {
-            return $this->surah['ayahs'];
-        }
-
-        return collect($this->surah['ayahs'])
-            ->where('page', $pageNumber)
-            ->values()
-            ->all();
-    }
-
-    public function totalMushafSteps(): int
-    {
-        return max(1, count($this->mushafPageNumbers));
     }
 
     public function exception(\Throwable $e, \Closure $stopPropagation): void

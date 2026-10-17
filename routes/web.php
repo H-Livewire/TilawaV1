@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\LibraryPdfController;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Bookmarks;
 use App\Livewire\Home;
+use App\Livewire\IslamicLibrary;
 use App\Livewire\Juz;
 use App\Livewire\Landing;
 use App\Livewire\Legal\Privacy;
@@ -24,7 +26,15 @@ Route::get('/terms', Terms::class)->name('terms');
 Route::get('/privacy', Privacy::class)->name('privacy');
 
 Route::get('/home', Home::class)->name('home');
+Route::get('/library', IslamicLibrary::class)->name('library');
+Route::get('/library/hisnul-muslim/read', [LibraryPdfController::class, 'reader'])->name('library.hisnul-muslim.reader');
+Route::get('/library/hisnul-muslim/pdf', LibraryPdfController::class)->name('library.hisnul-muslim.pdf');
+
+Route::get('/library/hisnul-muslim/swahili/read', [LibraryPdfController::class, 'reader'])->defaults('edition', 'swahili')->name('library.hisnul-muslim.swahili.reader');
+Route::get('/library/hisnul-muslim/swahili/pdf', LibraryPdfController::class)->defaults('edition', 'swahili')->name('library.hisnul-muslim.swahili.pdf');
+
 Route::get('/ruqyah', Ruqyah::class)->name('ruqyah');
+Route::view('/mushaf/reader', 'library.mushaf-reader')->name('mushaf.reader');
 Route::get('/surah/{number}', Reading::class)->name('surah.show');
 Route::get('/page/{number}', Page::class)->name('page.show');
 Route::get('/juz/{number}', Juz::class)->name('juz.show');

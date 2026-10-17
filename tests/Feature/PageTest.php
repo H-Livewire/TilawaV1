@@ -1,7 +1,10 @@
 <?php
 
+use App\Exceptions\QuranApiException;
 use App\Livewire\Page;
 use App\Models\User;
+use App\Services\QuranService;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -41,4 +44,13 @@ test('the final printed page has no next-page link', function () {
     fakePrintedPage(604);
     Livewire::actingAs(User::factory()->create())->test(Page::class, ['number' => 604])
         ->assertSee('Page 604')->assertDontSee('Next page')->assertSee(route('page.show', 603));
+});
+
+test('a page response cannot silently include verses assigned to another page', function () {
+    fakePrintedPage(2);
+    Http::swap(new Factory);
+    Http::preventStrayRequests();
+    $ayah = ['number' => 8, 'numberInSurah' => 1, 'text' => 'الم', 'page' => 3, 'surah' => ['number' => 2, 'name' => 'البقرة', 'englishName' => 'Al-Baqarah']];
+    Http::fake(['api.alquran.cloud/v1/page/2/*' => Http::response(['data' => ['number' => 2, 'ayahs' => [$ayah]]])]);
+    expect(fn () => app(QuranService::class)->getPage(2))->toThrow(QuranApiException::class);
 });

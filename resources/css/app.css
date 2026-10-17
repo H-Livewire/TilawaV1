@@ -14,16 +14,16 @@
     --font-arabic: 'Amiri', 'Noto Naskh Arabic', serif;
 
     --color-tilawa-teal: #2dafbd;
-    --color-tilawa-teal-dark: #188691;
+    --color-tilawa-teal-dark: #116b75;
     --color-tilawa-teal-light: #8fe0e8;
     --color-tilawa-mint: #8fe9c9;
     --color-tilawa-purple: #5b3fbf;
     --color-tilawa-amber: #f7de9a;
     --color-tilawa-ink: #12313a;
-    --color-tilawa-sub: #5c7a80;
+    --color-tilawa-sub: #48666c;
     --color-tilawa-line: #e3eeef;
-    --color-tilawa-paper: #fbf6e9;
-    --color-tilawa-gold: #b8892f;
+    --color-tilawa-paper: #f4fafa;
+    --color-tilawa-gold: #826017;
 
     /* Card / control surface. Distinct from the page background so cards
        stay visible in Night Mode; plain white in Light Mode. */
@@ -32,17 +32,17 @@
 
 /* ---------------------------------------------------------------------
    Night Mode
-   A dark, eye-friendly background (not pure black) with warm/off-white
+   A dark, eye-friendly background (not pure black) with soft off-white
    Arabic text and softened supporting text. Redefining these tokens here
    means every existing utility class built on them (bg-tilawa-*,
    text-tilawa-*, border-tilawa-*) adapts automatically — no per-component
    rewrite needed for the reading layout itself.
    ------------------------------------------------------------------- */
 :root.dark {
-    --color-tilawa-ink: #f3ead9;       /* warm off-white Arabic/body text, not bright white */
-    --color-tilawa-sub: #a9b9bc;       /* muted transliteration/translation text */
+    --color-tilawa-ink: #edf7f7;       /* soft off-white Arabic/body text, not bright white */
+    --color-tilawa-sub: #b4c9cd;       /* muted transliteration/translation text */
     --color-tilawa-line: #2a3a3d;      /* borders/dividers */
-    --color-tilawa-paper: #16232a;     /* subtle warm-dark panel tint */
+    --color-tilawa-paper: #16282e;     /* subtle teal-dark panel tint */
     --color-tilawa-surface: #1c2b30;   /* card surface, lighter than page bg */
     --color-tilawa-gold: #d9ab5a;
 }
@@ -105,3 +105,18 @@ html.dark .tajweed-group-silent { color: #9ca3af; }
 .word-token.word-token-selected {
     background-color: color-mix(in srgb, var(--color-tilawa-teal) 22%, transparent);
 }
+
+/* Keep teal labels readable on night-mode surfaces and pale icon badges. */
+.dark .text-tilawa-teal-dark {
+    color: var(--color-tilawa-teal-light);
+}
+
+.dark .bg-tilawa-teal-light.text-tilawa-teal-dark {
+    color: #116b75;
+}
+
+.dark .hover\:text-tilawa-teal-dark:hover {
+    color: var(--color-tilawa-teal-light);
+}
+
+@import './library.css';

@@ -210,21 +210,18 @@ test('ayat pagination cannot go past the first or last page', function () {
         ->assertSet('page', 2);
 });
 
-test('mushaf mode is chunked by real quran page numbers', function () {
+test('mushaf mode follows physical pages and synchronizes the ayat location', function () {
     fakePaginatedSurah();
-
-    $user = User::factory()->create();
-
-    Livewire::actingAs($user)
-        ->test(Reading::class, ['number' => 6])
-        ->call('setMode', 'mushaf')
-        ->assertSet('mushafStep', 1)
-        ->assertSee('نص الآية 1X')
-        ->assertDontSee('نص الآية 7X')
-        ->call('nextMushafPage')
-        ->assertSet('mushafStep', 2)
-        ->assertSee('نص الآية 7X')
-        ->assertDontSee('نص الآية 1X');
+    foreach ([100, 101] as $page) {
+        $ayahs = array_map(fn ($n) => ['surahNumber' => 6, 'surahName' => 'Al-Anam', 'surahArabicName' => 'الأنعام', 'number' => $n, 'globalAyahNumber' => $n, 'arabic' => "نص الآية {$n}X", 'translation' => 'Meaning', 'transliteration' => 'Text', 'page' => $page], $page === 100 ? range(1, 6) : range(7, 12));
+        Cache::store('file')->forever("tilawa-quran:quran.page.v2.{$page}.en", ['number' => $page, 'ayahs' => $ayahs]);
+    }
+    Livewire::test(Reading::class, ['number' => 6])
+        ->call('setMode', 'mushaf')->assertSet('physicalPage', 100)
+        ->call('nextMushafPage')->assertSet('physicalPage', 101)
+        ->assertDispatched('reader-location', url: route('surah.show', ['number' => 6, 'view' => 'mushaf', 'mp' => 101]))
+        ->call('setMode', 'ayat')->assertSet('page', 1)
+        ->assertSee('نص الآية 7X');
 });
 
 test('a user can bookmark and unbookmark an ayah', function () {
@@ -410,7 +407,7 @@ test('an ayah link opens the correct page without resetting saved progress', fun
     Livewire::withQueryParams(['ayah' => 12])->actingAs($user)
         ->test(Reading::class, ['number' => 6])
         ->assertSet('page', 2)
-        ->assertSet('mushafStep', 2)
+        ->assertSet('physicalPage', 101)
         ->assertSee('MARK-12-END')
         ->assertDontSee('MARK-1-END');
 
@@ -437,3 +434,64 @@ test('clients cannot alter the reader pagination size', function () {
     fakeSurahReadingEndpoints();
     Livewire::actingAs(User::factory()->create())->test(Reading::class, ['number' => 1])->set('perPage', 0);
 })->throws(CannotUpdateLockedPropertyException::class);
+
+function cacheMushafTestPage(int $page): void
+{
+    Cache::store('file')->forever("tilawa-quran:quran.page.v2.{$page}.en", [
+        'number' => $page,
+        'ayahs' => [
+            ['surahNumber' => 1, 'surahName' => 'Al-Fatihah', 'surahArabicName' => 'الفاتحة', 'number' => 1, 'globalAyahNumber' => 1, 'arabic' => 'النص الأول', 'translation' => 'First', 'transliteration' => 'First', 'page' => $page],
+            ['surahNumber' => 2, 'surahName' => 'Al-Baqarah', 'surahArabicName' => 'البقرة', 'number' => 1, 'globalAyahNumber' => 8, 'arabic' => 'النص الثاني', 'translation' => 'Second', 'transliteration' => 'Second', 'page' => $page],
+        ],
+    ]);
+    Http::fake(["api.quran.com/api/v4/verses/by_page/{$page}*" => Http::response(['verses' => []])]);
+}
+
+test('the flipbook payload includes every surah on a physical page', function () {
+    fakeSurahReadingEndpoints();
+    cacheMushafTestPage(1);
+    $component = Livewire::test(Reading::class, ['number' => 1]);
+    $pages = $component->instance()->loadMushafPages([1]);
+    expect($pages[1])->toContain('data-verse="1:1"', 'data-verse="2:1"', 'النص الأول', 'النص الثاني');
+});
+
+test('page navigation bounds and progress are synchronized', function () {
+    fakeSurahReadingEndpoints();
+    cacheMushafTestPage(1);
+    cacheMushafTestPage(604);
+    Livewire::test(Reading::class, ['number' => 1])
+        ->call('setMode', 'mushaf')->call('previousMushafPage')->assertSet('physicalPage', 1)
+        ->call('openMushafPage', 604)->assertSet('physicalPage', 604)
+        ->call('nextMushafPage')->assertSet('physicalPage', 604)
+        ->assertSet('number', 1);
+
+});
+
+test('mushaf requests reject invalid pages and unbounded batches', function () {
+    fakeSurahReadingEndpoints();
+    Livewire::test(Reading::class, ['number' => 1])->call('openMushafPage', 605)->assertStatus(422);
+    Livewire::test(Reading::class, ['number' => 1])->call('loadMushafPages', range(1, 9))->assertStatus(422);
+});
+
+test('surah selection retains mushaf mode and opening page context', function () {
+    fakeSurahReadingEndpoints();
+    cacheMushafTestPage(2);
+    Livewire::withQueryParams(['view' => 'mushaf', 'mp' => 2])->test(Reading::class, ['number' => 2])
+        ->assertSet('number', 2)->assertSet('physicalPage', 2)->assertSet('mode', 'mushaf')
+        ->call('goToSurah', 1)->assertRedirect(route('surah.show', ['number' => 1, 'view' => 'mushaf']));
+});
+
+test('failed page loads keep the last readable position and allow a retry', function () {
+    fakeSurahReadingEndpoints();
+    Http::fake(['api.alquran.cloud/v1/page/*' => Http::response([], 503)]);
+    Livewire::test(Reading::class, ['number' => 1])
+        ->call('loadMushafPages', [2])->assertReturned([])->assertSet('apiUnavailable', false)
+        ->call('openMushafPage', 2)->assertReturned(false)->assertSet('physicalPage', 1)->assertSet('number', 1);
+});
+
+test('returning from another screen remembers mushaf mode in the session', function () {
+    fakeSurahReadingEndpoints();
+    cacheMushafTestPage(1);
+    Livewire::test(Reading::class, ['number' => 1])->call('setMode', 'mushaf');
+    Livewire::test(Reading::class, ['number' => 1])->assertSet('mode', 'mushaf')->assertSet('physicalPage', 1);
+});

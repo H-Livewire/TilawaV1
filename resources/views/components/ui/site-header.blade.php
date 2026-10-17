@@ -3,9 +3,10 @@
         <a href="{{ route('landing') }}" wire:navigate aria-label="Tilawa home" class="flex shrink-0 items-center gap-2.5 text-tilawa-ink">
             <x-ui.logo />
         </a>
-        <nav aria-label="Main navigation" class="hidden items-center gap-5 text-sm font-semibold text-tilawa-sub lg:flex">
+        <nav aria-label="Main navigation" class="hidden items-center gap-4 text-sm font-semibold text-tilawa-sub lg:flex">
             <a href="{{ route('home') }}" wire:navigate @if (request()->routeIs('home')) aria-current="page" @endif class="transition hover:text-tilawa-teal-dark">Browse Qur'an</a>
             <a href="{{ route('ruqyah') }}" wire:navigate @if (request()->routeIs('ruqyah')) aria-current="page" @endif class="transition hover:text-tilawa-teal-dark">Ruqyah read</a>
+            <a href="{{ route('library') }}" wire:navigate @if (request()->routeIs('library')) aria-current="page" @endif class="whitespace-nowrap transition hover:text-tilawa-teal-dark">Islamic library</a>
             <a href="{{ route('landing') }}#about" class="transition hover:text-tilawa-teal-dark">About Tilawa</a>
             @auth
                 <a href="{{ route('bookmarks') }}" wire:navigate class="transition hover:text-tilawa-teal-dark">Bookmarks</a>
@@ -27,6 +28,7 @@
     <nav id="mobile-navigation" aria-label="Mobile navigation" x-show="menuOpen" x-cloak class="flex flex-col gap-4 border-t border-tilawa-line px-5 py-5 text-sm font-semibold text-tilawa-ink lg:hidden">
         <a href="{{ route('home') }}" wire:navigate>Browse Qur'an</a>
         <a href="{{ route('ruqyah') }}" wire:navigate>Ruqyah read</a>
+        <a href="{{ route('library') }}" wire:navigate>Islamic library</a>
         <a href="{{ route('landing') }}#about" @click="menuOpen = false">About Tilawa</a>
         @auth
             <a href="{{ route('bookmarks') }}" wire:navigate>Bookmarks</a>

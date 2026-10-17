@@ -1,4 +1,4 @@
-const CACHE = 'tilawa-offline-v2';
+const CACHE = 'tilawa-offline-v3';
 const ASSETS = ['/offline.html', '/pwa/icon-v2-192.png', '/pwa/icon-v2-512.png', '/pwa/icon-v2-180.png'];
 
 self.addEventListener('install', event => {

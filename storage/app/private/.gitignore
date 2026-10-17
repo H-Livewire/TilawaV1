@@ -1,2 +1,6 @@
 *
 !.gitignore
+
+!library/
+!library/english-hisnul-muslm.pdf
+!library/swahili-hisnul-muslm.pdf

@@ -1,5 +1,6 @@
 <div x-data="{ tajweedRule: null, tajweedRules: @js($this->tajweedRules), selectedWord: null }"
     x-on:open-tajweed.window="tajweedRule = tajweedRules[$event.detail] ?? null"
+    x-on:reader-location.window="history.replaceState(history.state, '', $event.detail.url)"
     x-on:open-word.window="selectedWord = $event.detail">
     {{-- Header --}}
     <div class="rounded-b-[2.5rem] bg-tilawa-teal px-6 pb-6 pt-6 md:px-12">
@@ -76,7 +77,7 @@
 
     {{-- Content --}}
     <div class="px-6 py-6 md:px-12 md:py-8">
-        @if (! in_array($number, [1, 9], true))
+        @if ($mode === 'ayat' && ! in_array($number, [1, 9], true))
             <div class="mx-auto mb-8 max-w-3xl text-center">
                 <p class="font-arabic text-3xl font-bold leading-relaxed text-tilawa-teal-dark">
                     بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -185,84 +186,19 @@
                 </div>
             @endif
         @else
-            <div id="mushaf-top" class="mx-auto max-w-3xl rounded-2xl border-2 border-tilawa-gold/30 bg-tilawa-paper p-8 md:p-10">
-                @if ($this->currentMushafPageNumber)
-                    <div class="mb-5 text-center text-xs font-bold uppercase tracking-wide text-tilawa-gold">
-                        Page {{ $this->currentMushafPageNumber }}
-                    </div>
-                @endif
-                <p class="font-arabic text-right text-[28px] leading-[2.4] text-tilawa-ink"
-                    @click="$event.target.closest('.tajweed-mark') && $dispatch('open-tajweed', $event.target.closest('.tajweed-mark').dataset.tajweedRule)">
-                    @foreach ($this->mushafAyahs as $ayah)
-                        @php
-                            $words = $this->wordsByAyah[$ayah['number']] ?? null;
-                            $tajweedWords = ($tajweedEnabled ? ($this->tajweedAyahs[$ayah['number']]['words'] ?? null) : null);
-                        @endphp
-                        @if ($words)
-                            @foreach ($words as $i => $word)
-                                @php $wordKey = $this->number.':'.$ayah['number'].':'.$i; @endphp
-                                <span class="word-token" wire:key="mushaf-word-{{ $ayah['number'] }}-{{ $i }}"
-                                    @click="!$event.target.closest('.tajweed-mark') && $dispatch('open-word', @js(array_merge($word, [
-                                        'surah' => $this->number,
-                                        'surahName' => $this->surah['englishName'],
-                                        'ayah' => $ayah['number'],
-                                        'wordKey' => $wordKey,
-                                        'tajweedRule' => \App\Support\TajweedRules::extractFromHtml($tajweedWords[$i] ?? null),
-                                    ])))"
-                                    x-bind:class="selectedWord && selectedWord.wordKey === '{{ $wordKey }}' ? 'word-token-selected' : ''">
-                                    @if ($tajweedWords && isset($tajweedWords[$i]))
-                                        {!! $tajweedWords[$i] !!}
-                                    @else
-                                        {{ $word['arabic'] }}
-                                    @endif
-                                </span>
-                            @endforeach
-                        @elseif ($tajweedEnabled && isset($this->tajweedAyahs[$ayah['number']]))
-                            {!! $this->tajweedAyahs[$ayah['number']]['html'] !!}
-                        @else
-                            {{ $ayah['arabic'] }}
-                        @endif
-                        <x-ui.number-badge :number="$ayah['number']" class="mx-1 h-8 w-8" textClass="text-xs" />
-                    @endforeach
-                </p>
-            </div>
-
-            @if ($this->totalMushafSteps() > 1)
-                <div class="mx-auto mt-6 flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-tilawa-line bg-tilawa-surface px-4 py-3 shadow-sm sm:px-5">
-                    <button type="button" wire:click="previousMushafPage" @disabled($mushafStep === 1)
-                        class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-35 {{ $mushafStep === 1 ? '' : 'text-tilawa-ink hover:bg-tilawa-line' }}">
-                        <x-ui.icon name="arrow-left" class="h-[15px] w-[15px]" />
-                        <span class="hidden sm:inline">Previous</span>
-                    </button>
-
-                    <div class="flex flex-col items-center gap-1.5">
-                        <span class="text-xs font-bold text-tilawa-ink">
-                            Mushaf page {{ $this->currentMushafPageNumber }}
-                        </span>
-                        @if ($this->totalMushafSteps() <= 12)
-                            <div class="flex flex-wrap items-center justify-center gap-1">
-                                @for ($i = 1; $i <= $this->totalMushafSteps(); $i++)
-                                    <span class="h-1.5 rounded-full transition-all {{ $i === $mushafStep ? 'w-4 bg-tilawa-gold' : 'w-1.5 bg-tilawa-gold/25' }}"></span>
-                                @endfor
-                            </div>
-                        @else
-                            <span class="text-[11px] font-semibold text-tilawa-sub">{{ $mushafStep }} of {{ $this->totalMushafSteps() }}</span>
-                        @endif
-                    </div>
-
-                    <button type="button" wire:click="nextMushafPage" @disabled($mushafStep === $this->totalMushafSteps())
-                        class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-35 {{ $mushafStep === $this->totalMushafSteps() ? '' : 'text-tilawa-ink hover:bg-tilawa-line' }}">
-                        <span class="hidden sm:inline">Next</span>
-                        <x-ui.icon name="arrow-right" class="h-[15px] w-[15px]" />
-                    </button>
+            <section x-data="mushafFlip" aria-label="Mushaf reader"
+                x-effect="configure($wire.physicalPage, $wire.translationLanguage, $wire.tajweedEnabled)">
+                <div wire:ignore>
+                    <iframe x-ref="frame" src="{{ route('mushaf.reader') }}" title="Interactive Mushaf reader" allow="fullscreen" class="mushaf-frame"></iframe>
                 </div>
-            @endif
+                <p class="sr-only">Uthmani text · 604-page mapping · Text reflows to fit your screen.</p>
+            </section>
         @endif
 
         {{-- Prev / next surah navigation --}}
         <div class="mx-auto mt-8 flex max-w-3xl items-center justify-between gap-3">
             @if ($previousNumber)
-                <a href="{{ route('surah.show', $previousNumber) }}" wire:navigate
+                <a href="{{ route('surah.show', array_filter(['number' => $previousNumber, 'view' => $mode === 'mushaf' ? 'mushaf' : null])) }}" wire:navigate
                     class="flex items-center gap-2 rounded-xl border border-tilawa-line bg-tilawa-surface px-4 py-2.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal">
                     <x-ui.icon name="arrow-left" class="h-[15px] w-[15px]" /> Previous surah
                 </a>
@@ -271,7 +207,7 @@
             @endif
 
             @if ($nextNumber)
-                <a href="{{ route('surah.show', $nextNumber) }}" wire:navigate
+                <a href="{{ route('surah.show', array_filter(['number' => $nextNumber, 'view' => $mode === 'mushaf' ? 'mushaf' : null])) }}" wire:navigate
                     class="flex items-center gap-2 rounded-xl border border-tilawa-line bg-tilawa-surface px-4 py-2.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal">
                     Next surah <x-ui.icon name="arrow-right" class="h-[15px] w-[15px]" />
                 </a>
