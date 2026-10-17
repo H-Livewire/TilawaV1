@@ -83,17 +83,36 @@ async function load(page) {
     }
     await document.fonts.ready;
 }
+const MAX_PAGE_WIDTH = 500;
+const FRAME_RATIO = 1.5;
+const FONT_RANGE = { max: 24, min: 15 };
+// Shrink the Arabic text until a whole Madani page fits a normal-sized frame.
+// Only when even the smallest font cannot fit (narrow phones) does the frame grow.
+function fitPage(measure, html, height) {
+    measure.innerHTML = html;
+    measure.style.height = `${height}px`;
+    const inner = measure.firstElementChild;
+    if (!inner) return { font: FONT_RANGE.max, height };
+    for (let font = FONT_RANGE.max; font >= FONT_RANGE.min; font--) {
+        measure.style.setProperty('--mushaf-fs', `${font}px`);
+        if (inner.scrollHeight <= inner.clientHeight) return { font, height };
+    }
+    inner.style.height = 'auto';
+    return { font: FONT_RANGE.min, height: Math.max(height, Math.ceil(inner.offsetHeight) + 2) };
+}
 function sizeBook() {
-    const width = Math.floor(Math.min(isSpread() ? (stage.clientWidth - 2) / 2 : stage.clientWidth - 2, 540));
+    const width = Math.floor(Math.min(isSpread() ? (stage.clientWidth - 2) / 2 : stage.clientWidth - 2, MAX_PAGE_WIDTH));
     const measure = document.createElement('div');
     measure.className = 'mushaf-measure';
     measure.style.width = `${width}px`;
     document.body.append(measure);
-    let height = Math.round(width * 1.5);
+    const baseHeight = Math.round(width * FRAME_RATIO);
+    let height = baseHeight;
     const visible = isSpread() ? [spreadStart(current), spreadStart(current) + 1] : [current];
-    for (const number of visible) {
-        measure.innerHTML = cache.get(number) ?? '';
-        height = Math.max(height, Math.ceil(measure.scrollHeight) + 12);
+    for (const [number, html] of cache) {
+        const fit = fitPage(measure, html, baseHeight);
+        pages[bookIndex(number)].style.setProperty('--mushaf-fs', `${fit.font}px`);
+        if (visible.includes(number)) height = Math.max(height, fit.height);
     }
     measure.remove();
     stage.style.height = `${height}px`;
