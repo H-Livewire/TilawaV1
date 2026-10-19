@@ -92,10 +92,19 @@
                         $shareText = "{$ayah['arabic']}\n\n{$ayah['translation']}\n\n— {$this->surah['englishName']} {$this->surah['number']}:{$ayah['number']}, Tilawa";
                     @endphp
                     @php $isBookmarked = in_array($ayah['number'], $this->bookmarkedAyahNumbers, true); @endphp
-                    <div class="rounded-2xl border {{ $isBookmarked ? 'border-tilawa-gold/50' : 'border-tilawa-line' }} bg-tilawa-surface p-5" x-data="{ copied: false }">
+                    <div id="ayah-{{ $ayah['number'] }}" class="scroll-mt-24 rounded-2xl border {{ $isBookmarked ? 'border-tilawa-gold/50' : 'border-tilawa-line' }} bg-tilawa-surface p-5" x-data="{ copied: false, audio: null }"
+                        x-on:audio-state.window="audio = ($event.detail.surah === {{ $this->number }} && $event.detail.ayah === {{ $ayah['number'] }}) ? ($event.detail.playing ? 'playing' : 'paused') : null"
+                        x-bind:class="audio ? 'ring-1 ring-tilawa-teal/50' : ''">
                         <div class="mb-3 flex items-center justify-between">
                             <x-ui.number-badge :number="$ayah['number']" class="h-11 w-11" textClass="text-sm" />
                             <div class="flex items-center gap-1.5">
+                                <button type="button" x-bind:aria-label="audio === 'playing' ? 'Pause recitation' : 'Play recitation'" x-bind:title="audio === 'playing' ? 'Pause' : 'Play'"
+                                    @click="audio === 'playing' ? $dispatch('audio-toggle') : $dispatch('audio-play', { surah: {{ $this->number }}, ayah: {{ $ayah['number'] }}, name: @js($this->surah['englishName']) })"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-tilawa-line"
+                                    x-bind:class="audio ? 'text-tilawa-teal-dark' : 'text-tilawa-sub/70 hover:text-tilawa-ink'">
+                                    <x-ui.icon name="play" class="h-[16px] w-[16px]" x-show="audio !== 'playing'" />
+                                    <x-ui.icon name="pause" class="h-[16px] w-[16px]" x-cloak x-show="audio === 'playing'" />
+                                </button>
                                 <button type="button" aria-label="{{ auth()->check() ? 'Toggle bookmark' : 'Sign in to save this ayah' }}" title="{{ auth()->check() ? 'Toggle bookmark' : 'Sign in to save this ayah' }}" wire:click="toggleBookmark({{ $ayah['number'] }})"
                                     class="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-tilawa-line {{ $isBookmarked ? 'text-tilawa-gold' : 'text-tilawa-sub/70 hover:text-tilawa-ink' }}">
                                     <x-ui.icon name="{{ $isBookmarked ? 'bookmark-filled' : 'bookmark' }}" class="h-[16px] w-[16px]" />
@@ -122,7 +131,7 @@
                             @if ($words)
                                 @foreach ($words as $i => $word)
                                     @php $wordKey = $this->number.':'.$ayah['number'].':'.$i; @endphp
-                                    <span class="word-token" wire:key="word-{{ $ayah['number'] }}-{{ $i }}"
+                                    <span class="word-token" data-audio-word="{{ $this->number }}:{{ $ayah['number'] }}:{{ $i }}" wire:key="word-{{ $ayah['number'] }}-{{ $i }}"
                                         @click="!$event.target.closest('.tajweed-mark') && $dispatch('open-word', @js(array_merge($word, [
                                             'surah' => $this->number,
                                             'surahName' => $this->surah['englishName'],
@@ -219,4 +228,5 @@
 
     <x-ui.tajweed-panel />
     <x-ui.word-drawer />
+    <x-ui.audio-player :surah="$number" :total="$this->surah['numberOfAyahs']" :name="$this->surah['englishName']" />
 </div>

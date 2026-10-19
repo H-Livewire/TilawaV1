@@ -203,6 +203,20 @@ class Reading extends Component
         }
     }
 
+    /** Turn to the page holding an ayah (used by the recitation player while it follows along). */
+    public function showAyah(int $ayah): void
+    {
+        abort_unless($ayah >= 1 && $ayah <= $this->surah['numberOfAyahs'], 422);
+        $page = (int) ceil($ayah / $this->perPage);
+        if ($page === $this->page) {
+            return;
+        }
+        $this->page = $page;
+        unset($this->pagedAyahs);
+        $this->focusedAyah = $ayah;
+        $this->syncReaderUrl();
+    }
+
     public function previousPage(): void
     {
         if ($this->page > 1) {

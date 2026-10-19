@@ -105,6 +105,12 @@ html.dark .tajweed-group-silent { color: #9ca3af; }
 .word-token.word-token-selected {
     background-color: color-mix(in srgb, var(--color-tilawa-teal) 22%, transparent);
 }
+.word-token.audio-word-active,
+.word-token.audio-word-active * {
+    color: var(--color-tilawa-teal) !important;
+    /* A touch heavier than regular without the full bold weight. */
+    -webkit-text-stroke: 0.45px currentColor;
+}
 
 /* Keep teal labels readable on night-mode surfaces and pale icon badges. */
 .dark .text-tilawa-teal-dark {
