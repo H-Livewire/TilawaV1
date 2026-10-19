@@ -19,7 +19,7 @@
                 @else
                     {{ $ayah['arabic'] }}
                 @endif
-                <x-ui.number-badge :number="$ayah['number']" class="mx-1 h-8 w-8" textClass="text-xs" />
+                <x-ui.number-badge :number="$ayah['number']" class="mx-0.5 h-7 w-7" :textClass="$ayah['number'] > 99 ? 'text-[8px]' : ($ayah['number'] > 9 ? 'text-[10px]' : 'text-xs')" />
             </span>
         @endforeach
     </div>

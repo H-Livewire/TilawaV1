@@ -84,7 +84,7 @@ async function load(page) {
     await document.fonts.ready;
 }
 function sizeBook() {
-    const width = Math.floor(Math.min(isSpread() ? (stage.clientWidth - 2) / 2 : stage.clientWidth - 2, 540));
+    const width = Math.floor(Math.min(isSpread() ? (stage.clientWidth - 2) / 2 : stage.clientWidth - 2, 400));
     const measure = document.createElement('div');
     measure.className = 'mushaf-measure';
     measure.style.width = `${width}px`;
@@ -171,8 +171,8 @@ function turn(direction) {
     if (book.getState() === 'read') show(target);
 }
 async function configure(data) {
-    // Keep the requested white Mushaf paper and its light-theme text contrast.
-    document.documentElement.classList.remove('dark');
+    // Follow the app's theme: white-on-dark pages in night mode, white paper otherwise.
+    document.documentElement.classList.toggle('dark', data.dark === true);
     if (settings && settings.language === data.language && settings.tajweed === data.tajweed && current === data.page) return;
     if (busy && settings) { queued = data; return; }
     const changed = !settings || settings.language !== data.language || settings.tajweed !== data.tajweed;
