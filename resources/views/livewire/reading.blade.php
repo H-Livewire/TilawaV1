@@ -1,4 +1,4 @@
-<div x-data="{ tajweedRule: null, tajweedRules: @js($this->tajweedRules), selectedWord: null }"
+<div x-data="{ settingsOpen: false, tajweedRule: null, tajweedRules: @js($this->tajweedRules), selectedWord: null }"
     x-on:open-tajweed.window="tajweedRule = tajweedRules[$event.detail] ?? null"
     x-on:reader-location.window="history.replaceState(history.state, '', $event.detail.url)"
     x-on:open-word.window="selectedWord = $event.detail">
@@ -28,21 +28,13 @@
         <x-ui.surah-nav :surahs="$this->surahList" :current="$number" :ayah-count="$this->surah['numberOfAyahs']" :ayah="$focusedAyah" :mode="$mode" :page="$physicalPage"
             :label="$number . '. ' . $this->surah['englishName']" />
 
-        <x-ui.dropdown title="Choose a translation" trigger-icon="globe" :trigger-label="$this->translationLanguages[$translationLanguage]" search-placeholder="Search language or translator...">
-            @foreach ($this->translationLanguages as $code => $label)
-                <button type="button" wire:click="setTranslationLanguage('{{ $code }}')" @click="open = false"
-                    x-show="query === '' || @js(\Illuminate\Support\Str::lower($label.' '.$this->translatorCredits[$code])).includes(query.toLowerCase())"
-                    class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-tilawa-line dark:hover:bg-white/10 {{ $translationLanguage === $code ? 'bg-tilawa-teal-light/40 dark:bg-tilawa-teal/20' : '' }}">
-                    <span>
-                        <span class="block text-sm font-bold {{ $translationLanguage === $code ? 'text-tilawa-teal-dark dark:text-tilawa-teal-light' : 'text-tilawa-ink dark:text-[#f3ead9]' }}">{{ $label }}</span>
-                        <span class="block text-xs text-tilawa-sub dark:text-[#a9b9bc]">{{ $this->translatorCredits[$code] }}</span>
-                    </span>
-                    @if ($translationLanguage === $code)
-                        <x-ui.icon name="check-circle" class="h-4 w-4 shrink-0 text-tilawa-teal-dark" />
-                    @endif
-                </button>
-            @endforeach
-        </x-ui.dropdown>
+        {{-- Below xl the reader settings fold away behind this button; on wide screens they sit beside the reader. --}}
+        <button type="button" @click="settingsOpen = !settingsOpen" x-bind:aria-expanded="settingsOpen"
+            class="flex items-center gap-2 rounded-xl border border-tilawa-line bg-tilawa-surface px-3 py-2.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#f3ead9] xl:hidden">
+            <x-ui.icon name="globe" class="h-4 w-4 shrink-0 text-tilawa-sub" />
+            <span>Reader settings</span>
+            <x-ui.icon name="chevron-down" class="h-[14px] w-[14px] shrink-0 text-tilawa-sub transition-transform duration-200" x-bind:class="settingsOpen ? 'rotate-180' : ''" />
+        </button>
 
         <x-ui.tafsir-menu />
 
@@ -67,7 +59,29 @@
     </div>
 
     {{-- Content --}}
-    <div class="px-6 py-6 md:px-12 md:py-8">
+    <div class="px-6 py-6 md:px-12 md:py-8 xl:flex xl:items-start xl:gap-8">
+        <aside aria-label="Reader settings" x-bind:class="{ 'max-xl:hidden': ! settingsOpen }"
+            class="mb-6 rounded-2xl border border-tilawa-line bg-tilawa-surface p-4 shadow-sm dark:border-white/10 dark:bg-[#1c2b30] xl:sticky xl:top-6 z-30 xl:order-2 xl:mb-0 xl:w-64 xl:shrink-0">
+            <div class="mb-3 text-sm font-bold text-tilawa-ink dark:text-[#f3ead9]">Reader settings</div>
+        <x-ui.dropdown title="Translation Language" label="Translation Language" block trigger-icon="globe" :trigger-label="$this->translationLanguages[$translationLanguage]" search-placeholder="Search language or translator...">
+            @foreach ($this->translationLanguages as $code => $label)
+                <button type="button" wire:click="setTranslationLanguage('{{ $code }}')" @click="open = false"
+                    x-show="query === '' || @js(\Illuminate\Support\Str::lower($label.' '.$this->translatorCredits[$code])).includes(query.toLowerCase())"
+                    class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-tilawa-line dark:hover:bg-white/10 {{ $translationLanguage === $code ? 'bg-tilawa-teal-light/40 dark:bg-tilawa-teal/20' : '' }}">
+                    <span>
+                        <span class="block text-sm font-bold {{ $translationLanguage === $code ? 'text-tilawa-teal-dark dark:text-tilawa-teal-light' : 'text-tilawa-ink dark:text-[#f3ead9]' }}">{{ $label }}</span>
+                        <span class="block text-xs text-tilawa-sub dark:text-[#a9b9bc]">{{ $this->translatorCredits[$code] }}</span>
+                    </span>
+                    @if ($translationLanguage === $code)
+                        <x-ui.icon name="check-circle" class="h-4 w-4 shrink-0 text-tilawa-teal-dark" />
+                    @endif
+                </button>
+            @endforeach
+        </x-ui.dropdown>
+            <p class="mt-2 text-xs leading-relaxed text-tilawa-sub dark:text-[#a9b9bc]">{{ $this->translatorCredits[$translationLanguage] }}</p>
+        </aside>
+
+        <div class="min-w-0 flex-1 xl:order-1">
         @if ($mode === 'ayat' && ! in_array($number, [1, 9], true))
             <div class="mx-auto mb-8 max-w-3xl text-center">
                 <p class="font-arabic text-3xl font-bold leading-relaxed text-tilawa-teal-dark">
@@ -241,6 +255,7 @@
             @else
                 <span></span>
             @endif
+        </div>
         </div>
     </div>
 
