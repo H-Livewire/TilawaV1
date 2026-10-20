@@ -26,6 +26,7 @@
     @guest
         <livewire:auth.login-drawer />
     @endguest
+    <x-ui.bottom-nav />
     <x-ui.pwa-install />
     @livewireScripts
 </body>
