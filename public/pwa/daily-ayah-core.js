@@ -18,7 +18,7 @@
     const DEFAULTS = Object.freeze({
         enabled: false,
         time: '07:00',
-        arabic: true,
+        arabic: false, // notifications carry the translation and reference; the Arabic is one tap away
         translation: true,
         reference: true,
         simple: false,
@@ -85,7 +85,8 @@
         };
     }
 
-    // Android already shows the small Tilawa badge on the left; a second large logo on the right would double it.
+    // Android already shows the small Tilawa badge on the left. Chrome would paint a grey letter ("T") circle where
+    // the large icon belongs, so it gets a fully transparent image instead of a second logo.
     const onAndroid = () => /Android/i.test((root.navigator && root.navigator.userAgent) || '');
 
     function notificationOptions(ayah, prefs, tag = TAG) {
@@ -100,7 +101,7 @@
             data: { url, date: ayah ? ayah.date : dateKey() },
             actions: [{ action: 'read', title: 'Read ayah' }],
         };
-        if (onAndroid()) delete options.icon;
+        if (onAndroid()) options.icon = '/pwa/notification-blank.png';
         return options;
     }
 
@@ -169,7 +170,7 @@
             data: { url },
             actions: [{ action: 'read', title: 'Read ayah' }],
         };
-        if (onAndroid()) delete options.icon;
+        if (onAndroid()) options.icon = '/pwa/notification-blank.png';
         return { title: typeof data.title === 'string' ? data.title : 'Ayah of the Day', options };
     }
 

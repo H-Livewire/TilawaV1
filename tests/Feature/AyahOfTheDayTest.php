@@ -71,7 +71,7 @@ test('forDate returns the verified text, translation, reference and a deep link'
         'arabic' => "arabic {$surah}:{$ayah}",
         'translation' => "translation {$surah}:{$ayah}",
         'reference' => "Surah {$surah} {$surah}:{$ayah}",
-        'url' => "/surah/{$surah}?ayah={$ayah}",
+        'url' => "/surah/{$surah}?ayah={$ayah}#ayah-{$ayah}",
     ]);
 });
 

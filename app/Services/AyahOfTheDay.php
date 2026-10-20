@@ -93,7 +93,8 @@ class AyahOfTheDay
             'translator' => QuranService::TRANSLATOR_CREDITS[$language] ?? '',
             'language' => $language,
             'reference' => "{$surah['englishName']} {$surahNumber}:{$ayahNumber}",
-            'url' => route('surah.show', ['number' => $surahNumber, 'ayah' => $ayahNumber], false),
+            // The fragment scrolls the reader straight to the ayah.
+            'url' => route('surah.show', ['number' => $surahNumber, 'ayah' => $ayahNumber], false)."#ayah-{$ayahNumber}",
         ];
     }
 }

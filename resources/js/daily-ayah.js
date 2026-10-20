@@ -55,7 +55,7 @@ document.addEventListener('alpine:init', () => {
         ready: false,
         busy: false,
         problem: '',
-        prefs: { enabled: false, time: '07:00', arabic: true, translation: true, reference: true, simple: false, push: false, optedOut: false, lang: 'en', lastShown: null },
+        prefs: { enabled: false, time: '07:00', arabic: false, translation: true, reference: true, simple: false, push: false, optedOut: false, lang: 'en', lastShown: null },
         ayah,
         reminder,
 
@@ -72,7 +72,7 @@ document.addEventListener('alpine:init', () => {
             this.supported = supported();
             this.permission = this.supported ? Notification.permission : 'unsupported';
             const prefs = await core().loadPrefs();
-            Object.assign(prefs, { arabic: true, translation: true, reference: true, simple: false, lang: ayah?.language ?? 'en' });
+            Object.assign(prefs, { arabic: false, translation: true, reference: true, simple: false, lang: ayah?.language ?? 'en' });
             if (this.reminder?.saved?.time) prefs.time = this.reminder.saved.time;
             this.prefs = prefs;
 

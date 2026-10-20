@@ -5,7 +5,7 @@ import fs from 'node:fs';
 
 const ayah = {
     date: '2026-10-20', surah: 2, ayah: 255, surahName: 'Al-Baqarah', reference: 'Al-Baqarah 2:255',
-    arabic: 'ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ', translation: 'Allah - there is no deity except Him.', url: '/surah/2?ayah=255',
+    arabic: 'ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ', translation: 'Allah - there is no deity except Him.', url: '/surah/2?ayah=255#ayah-255',
 };
 
 function load(permission = 'granted') {
@@ -26,7 +26,7 @@ test('defaults: disabled, 7:00 AM, all content shown', () => {
     const prefs = D.normalize(undefined);
     assert.equal(prefs.enabled, false);
     assert.equal(prefs.time, '07:00');
-    assert.ok(prefs.arabic && prefs.translation && prefs.reference && !prefs.simple);
+    assert.ok(!prefs.arabic && prefs.translation && prefs.reference && !prefs.simple);
 });
 
 test('invalid saved values fall back safely; empty content becomes a simple reminder', () => {
@@ -55,12 +55,12 @@ test('due only when enabled, past the time, inside the catch-up window and not y
 
 test('content choices decide what the notification says', () => {
     const D = load();
-    const all = D.compose(ayah, D.normalize({}));
+    const all = D.compose(ayah, D.normalize({ arabic: true }));
     assert.equal(all.title, `Ayah of the Day · ${ayah.reference}`);
     assert.equal(all.body, `${ayah.translation}\n${ayah.arabic}`);
-    assert.equal(all.url, '/surah/2?ayah=255');
+    assert.equal(all.url, '/surah/2?ayah=255#ayah-255');
 
-    const arabicOnly = D.compose(ayah, D.normalize({ translation: false, reference: false }));
+    const arabicOnly = D.compose(ayah, D.normalize({ arabic: true, translation: false, reference: false }));
     assert.equal(arabicOnly.body, ayah.arabic);
     assert.equal(arabicOnly.title, 'Ayah of the Day');
     assert.equal(D.compose(ayah, D.normalize({ arabic: false, reference: false })).body, ayah.translation);
@@ -70,7 +70,7 @@ test('content choices decide what the notification says', () => {
 
     const simple = D.compose(ayah, D.normalize({ simple: true }));
     assert.ok(!simple.body.includes(ayah.arabic) && !simple.title.includes(ayah.reference));
-    assert.equal(simple.url, '/surah/2?ayah=255');
+    assert.equal(simple.url, '/surah/2?ayah=255#ayah-255');
 });
 
 test('without ayah data (offline) the notification is a simple reminder that opens the daily page', () => {
@@ -85,7 +85,7 @@ test('notification uses the Tilawa logo icon and carries the deep link', () => {
     const options = D.notificationOptions(ayah, D.normalize({}));
     assert.equal(options.icon, '/pwa/notification-icon.png');
     assert.equal(options.badge, '/pwa/notification-badge.png');
-    assert.equal(options.data.url, '/surah/2?ayah=255');
+    assert.equal(options.data.url, '/surah/2?ayah=255#ayah-255');
     assert.equal(options.tag, 'tilawa-daily-ayah');
 });
 
@@ -94,9 +94,9 @@ test('Android shows only the small badge on the left; other platforms keep the l
     const root = { navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-A556E) Chrome/120' }, Notification: { permission: 'granted' } };
     vm.runInNewContext(fs.readFileSync('public/pwa/daily-ayah-core.js', 'utf8'), { module, self: root, globalThis: root, Date, Promise, encodeURIComponent, Intl });
     const D = module.exports;
-    assert.equal(D.notificationOptions(ayah, D.normalize({})).icon, undefined);
+    assert.equal(D.notificationOptions(ayah, D.normalize({})).icon, '/pwa/notification-blank.png');
     assert.equal(D.notificationOptions(ayah, D.normalize({})).badge, '/pwa/notification-badge.png');
-    assert.equal(D.pushOptions({ title: 'x', body: 'y', url: '/a' }).options.icon, undefined);
+    assert.equal(D.pushOptions({ title: 'x', body: 'y', url: '/a' }).options.icon, '/pwa/notification-blank.png');
     assert.equal(load().notificationOptions(ayah, load().normalize({})).icon, '/pwa/notification-icon.png');
 });
 

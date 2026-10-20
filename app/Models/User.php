@@ -41,7 +41,8 @@ class User extends Authenticatable
         return [
             'enabled' => (bool) $this->daily_ayah_enabled,
             'time' => $this->daily_ayah_time ?: '07:00',
-            'arabic' => (bool) ($this->daily_ayah_arabic ?? true),
+            // Notifications show the translation and reference; the Arabic is one tap away in the reader.
+            'arabic' => false,
             'translation' => (bool) ($this->daily_ayah_translation ?? true),
             'reference' => (bool) ($this->daily_ayah_reference ?? true),
             'simple' => (bool) $this->daily_ayah_simple,

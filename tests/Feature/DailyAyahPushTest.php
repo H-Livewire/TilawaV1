@@ -21,7 +21,7 @@ function sampleAyah(): array
 {
     return [
         'date' => '2026-10-20', 'surah' => 2, 'ayah' => 255, 'surahName' => 'Al-Baqarah', 'language' => 'en',
-        'arabic' => 'ARABIC', 'translation' => 'TRANSLATION', 'reference' => 'Al-Baqarah 2:255', 'url' => '/surah/2?ayah=255',
+        'arabic' => 'ARABIC', 'translation' => 'TRANSLATION', 'reference' => 'Al-Baqarah 2:255', 'url' => '/surah/2?ayah=255#ayah-255',
     ];
 }
 
@@ -79,7 +79,7 @@ test('message content follows the user choices', function () {
     $full = DailyAyahMessage::compose(sampleAyah(), $all);
     expect($full['title'])->toBe('Ayah of the Day · Al-Baqarah 2:255')
         ->and($full['body'])->toBe("TRANSLATION\nARABIC")
-        ->and($full['url'])->toBe('/surah/2?ayah=255');
+        ->and($full['url'])->toBe('/surah/2?ayah=255#ayah-255');
 
     $arabicOnly = DailyAyahMessage::compose(sampleAyah(), [...$all, 'translation' => false, 'reference' => false]);
     expect($arabicOnly['body'])->toBe('ARABIC')->and($arabicOnly['title'])->toBe('Ayah of the Day');
@@ -133,8 +133,9 @@ test('the scheduler command sends at the user\'s local time, once a day', functi
     Carbon::setTestNow(Carbon::parse('2026-10-20 04:00:00', 'UTC')); // 07:00
     $this->artisan('ayah:send-daily')->assertSuccessful();
     expect($sent)->toHaveCount(1)
-        ->and($sent[0]['payload']['url'])->toBe('/surah/2?ayah=255')
-        ->and($sent[0]['payload']['body'])->toContain('ARABIC');
+        ->and($sent[0]['payload']['url'])->toBe('/surah/2?ayah=255#ayah-255')
+        ->and($sent[0]['payload']['body'])->toContain('TRANSLATION')
+        ->and($sent[0]['payload']['body'])->not->toContain('ARABIC');
 
     Carbon::setTestNow(Carbon::parse('2026-10-20 04:05:00', 'UTC'));
     $this->artisan('ayah:send-daily')->assertSuccessful();
