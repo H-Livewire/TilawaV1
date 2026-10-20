@@ -28,8 +28,6 @@
         <x-ui.surah-nav :surahs="$this->surahList" :current="$number" :ayah-count="$this->surah['numberOfAyahs']" :ayah="$focusedAyah" :mode="$mode" :page="$physicalPage"
             :label="$number . '. ' . $this->surah['englishName']" />
 
-        <x-ui.tafsir-menu />
-
         <button type="button" wire:click="toggleTajweed" title="Highlight Tajweed rules in the Arabic text"
             class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold shadow-sm transition {{ $tajweedEnabled ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950' : 'border-tilawa-line bg-tilawa-surface hover:border-cyan-300' }}">
             <img src="{{ asset('images/tajweed-icon.png') }}" alt="" class="h-5 w-5 shrink-0 {{ $tajweedEnabled ? '' : 'opacity-60' }}">
@@ -50,7 +48,7 @@
         </div>
 
         <x-ui.reader-settings :mode="$mode" :language="$translationLanguage" :languages="$this->translationLanguages"
-            :credits="$this->translatorCredits" :tajweed="$tajweedEnabled" :sample="$this->surah['ayahs'][0] ?? null" />
+            :credits="$this->translatorCredits" :tajweed="$tajweedEnabled" />
     </div>
 
     {{-- Content --}}

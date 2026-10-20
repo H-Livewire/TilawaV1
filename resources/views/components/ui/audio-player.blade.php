@@ -3,8 +3,6 @@
 <div x-data="audioPlayer(@js(['surah' => $surah, 'total' => $total, 'name' => $name]))"
     x-on:audio-play.window="play($event.detail)"
     x-on:audio-toggle.window="toggle()"
-    x-on:audio-reciter-request.window="announce()"
-    x-on:audio-set-reciter.window="choose('reciter', $event.detail); menu = null"
     x-on:keydown.escape.window="menu = null">
     {{-- Keeps the last ayah clear of the fixed bar --}}
     <div x-cloak x-show="open" class="h-24"></div>

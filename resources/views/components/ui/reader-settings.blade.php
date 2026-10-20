@@ -1,12 +1,8 @@
-@props(['mode', 'language', 'languages', 'credits', 'tajweed', 'sample' => null])
+@props(['mode', 'language', 'languages', 'credits', 'tajweed'])
 
 {{-- Gear button + right-hand drawer with the reader settings. Quran state goes through $wire (Reading.php);
      sizes and show/hide choices live in the reader store (resources/js/reader-prefs.js). --}}
-<div x-data="{ open: false, reciter: null, reciters: [],
-        sync(event) { this.reciter = event.detail.reciter; this.reciters = event.detail.list; } }"
-    x-on:audio-reciter.window="sync($event)"
-    x-init="$watch('open', value => { if (value) window.dispatchEvent(new CustomEvent('audio-reciter-request')) })"
-    @keydown.escape.window="open = false">
+<div x-data="{ open: false }" @keydown.escape.window="open = false">
     <button type="button" @click="open = true" aria-label="Reader settings" title="Reader settings"
         class="flex h-10 w-10 items-center justify-center rounded-xl border border-tilawa-line bg-tilawa-surface text-tilawa-sub shadow-sm transition hover:border-tilawa-teal hover:text-tilawa-teal-dark dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#a9b9bc]">
         <x-ui.icon name="settings" class="h-[19px] w-[19px]" />
@@ -89,24 +85,11 @@
                 </button>
             </div>
 
-            {{-- Qari (the recitation player owns the choice; this talks to it by events) --}}
-            <div class="pt-2" x-show="reciters.length">
-                <label for="reader-qari" class="{{ $label }}">Qari</label>
-                <select id="reader-qari" class="{{ $select }}" @change="window.dispatchEvent(new CustomEvent('audio-set-reciter', { detail: $event.target.value }))">
-                    <template x-for="item in reciters" :key="item.id">
-                        <option x-bind:value="item.id" x-text="item.name" x-bind:selected="item.id === reciter"></option>
-                    </template>
-                </select>
+            {{-- Tafsir source (shown under each ayah's book icon) --}}
+            <div class="pt-2">
+                <span class="{{ $label }}">Tafsir</span>
+                <x-ui.tafsir-picker />
             </div>
-
-            @if ($mode === 'ayat' && $sample)
-                <div class="mt-4 rounded-2xl border border-tilawa-line p-4 dark:border-white/10">
-                    <p class="font-arabic text-right leading-[2.2] text-tilawa-ink dark:text-[#f3ead9]" dir="rtl"
-                        x-bind:style="{ fontSize: $store.reader.arabicSize }">{{ $sample['arabic'] }}</p>
-                    <p class="mt-2 leading-relaxed text-tilawa-ink dark:text-[#f3ead9]" x-show="$store.reader.translation"
-                        x-bind:style="{ fontSize: $store.reader.translationSize }">{{ $sample['translation'] }}</p>
-                </div>
-            @endif
         </div>
     </div>
 </div>
