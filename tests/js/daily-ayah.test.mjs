@@ -145,7 +145,7 @@ test('the endpoint is asked for the device\'s local date and language', async ()
 });
 
 // ---- service worker wiring ----
-function worker({ clients = [], core = true } = {}) {
+function worker({ clients = [], core = true, opened = {} } = {}) {
     const handlers = {};
     const calls = { opened: [], delivered: 0 };
     const self = {
@@ -154,7 +154,7 @@ function worker({ clients = [], core = true } = {}) {
         registration: { id: 'reg' },
         clients: {
             matchAll: async () => clients,
-            openWindow: async url => { calls.opened.push(url); },
+            openWindow: async url => { calls.opened.push(url); return opened; },
         },
         TilawaDaily: core ? { deliver: async () => { calls.delivered++; } } : undefined,
     };
@@ -176,14 +176,22 @@ test('tapping the notification opens the ayah in a new window when Tilawa is clo
     assert.deepEqual(calls.opened, ['https://tilawa.test/surah/2?ayah=255']);
 });
 
-test('tapping the notification navigates and focuses an open Tilawa window', async () => {
-    let navigated, focused = false;
-    const client = { url: 'https://tilawa.test/home', navigate: async url => { navigated = url; return client; }, focus: async () => { focused = true; } };
+test('tapping the notification brings Tilawa to the front even when a tab is already open', async () => {
+    let navigated = false;
+    const client = { url: 'https://tilawa.test/home', navigate: async () => { navigated = true; return client; }, focus: async () => {} };
     const { handlers, calls } = worker({ clients: [client] });
     await click(handlers, '/surah/36?ayah=1').work;
-    assert.equal(navigated, 'https://tilawa.test/surah/36?ayah=1');
+    assert.deepEqual(calls.opened, ['https://tilawa.test/surah/36?ayah=1']);
+    assert.equal(navigated, false);
+});
+
+test('if a new window is refused, the open Tilawa window is navigated and focused instead', async () => {
+    let navigatedTo, focused = false;
+    const client = { url: 'https://tilawa.test/home', navigate: async url => { navigatedTo = url; return client; }, focus: async () => { focused = true; } };
+    const { handlers } = worker({ clients: [client], opened: null });
+    await click(handlers, '/surah/36?ayah=1').work;
+    assert.equal(navigatedTo, 'https://tilawa.test/surah/36?ayah=1');
     assert.ok(focused);
-    assert.deepEqual(calls.opened, []);
 });
 
 test('notification links to other sites are ignored', async () => {

@@ -7,4 +7,4 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-v2-192.png">
 <link rel="stylesheet" href="/pwa/install.css?v=1">
 <script src="/pwa/register.js?v=2" defer data-navigate-once></script>
-<script src="/pwa/daily-ayah-core.js?v=1" defer data-navigate-once></script>
+<script src="/pwa/daily-ayah-core.js?v=2" defer data-navigate-once></script>

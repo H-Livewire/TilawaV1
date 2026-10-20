@@ -1,10 +1,12 @@
 // Ayah of the Day: shared scheduling/notification code (also loaded by the page).
-try { importScripts('/pwa/daily-ayah-core.js?v=1'); } catch { /* notifications simply stay page-driven */ }
+try { importScripts('/pwa/daily-ayah-core.js?v=2'); } catch { /* notifications simply stay page-driven */ }
 
 const CACHE = 'tilawa-offline-v3';
 const ASSETS = ['/offline.html', '/pwa/icon-v2-192.png', '/pwa/icon-v2-512.png', '/pwa/icon-v2-180.png'];
 
 self.addEventListener('install', event => {
+    // Apply a new worker right away so fixes (like notification handling) don't wait for every tab to close.
+    if (self.skipWaiting) self.skipWaiting();
     event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
 });
 
@@ -45,15 +47,19 @@ self.addEventListener('notificationclick', event => {
     } catch { /* keep the fallback */ }
 
     event.waitUntil((async () => {
+        // openWindow brings Tilawa to the front (a new tab in Chrome, the app window when installed) and
+        // loads the ayah. Navigating a background tab, by contrast, can succeed without ever showing it.
+        try {
+            if (await self.clients.openWindow(target.href)) return;
+        } catch { /* fall back to reusing an open window */ }
         const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         const open = windows.find(client => new URL(client.url).origin === self.location.origin);
         if (open) {
             try {
                 const navigated = await open.navigate(target.href);
-                return (navigated || open).focus();
-            } catch { /* fall through to a new window */ }
+                await (navigated || open).focus();
+            } catch { /* nothing more to try */ }
         }
-        return self.clients.openWindow(target.href);
     })());
 });
 
