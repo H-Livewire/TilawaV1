@@ -351,6 +351,19 @@ test('the translation picker lists every supported language with its translator 
         ->assertSee('Ali Muhsin Al-Barwani');
 });
 
+test('the reader settings drawer holds the translation language and keeps the reading position', function () {
+    fakeSurahReadingEndpoints();
+
+    Livewire::test(Reading::class, ['number' => 1])
+        ->assertSee('Reader settings')
+        ->assertSee('Translation Language')
+        ->assertSee('Mushaf mode')
+        ->assertSee('Enable Transliteration')
+        ->call('setTranslationLanguage', 'sw')
+        ->assertSet('translationLanguage', 'sw')
+        ->assertSet('number', 1);
+});
+
 test('tajweed highlighting is off by default', function () {
     fakeSurahReadingEndpoints();
 

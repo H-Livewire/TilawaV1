@@ -1,17 +1,14 @@
-@props(['title', 'triggerLabel', 'triggerIcon' => null, 'searchPlaceholder' => null, 'label' => null, 'block' => false])
+@props(['title', 'triggerLabel', 'triggerIcon' => null, 'searchPlaceholder' => null])
 
 {{-- A picker that opens right under its own button (same slot contract as x-ui.drawer). --}}
-<div {{ $attributes->class(['relative']) }} x-data="{ open: false, query: '', pos: {}, place(max) { const r = this.$refs.trigger.getBoundingClientRect(); const width = Math.min(max, window.innerWidth - 32); const left = Math.max(16, Math.min(r.left, window.innerWidth - 16 - width)); this.pos = { left: (left - r.left) + 'px', width: width + 'px' }; } }" @click.outside="open = false; query = ''" @keydown.escape.window="open = false"
+<div class="relative" x-data="{ open: false, query: '', pos: {}, place(max) { const r = this.$refs.trigger.getBoundingClientRect(); const width = Math.min(max, window.innerWidth - 32); const left = Math.max(16, Math.min(r.left, window.innerWidth - 16 - width)); this.pos = { left: (left - r.left) + 'px', width: width + 'px' }; } }" @click.outside="open = false; query = ''" @keydown.escape.window="open = false"
     x-init="$watch('open', value => { if (value) { place(352); $nextTick(() => $refs.dropdownSearch?.focus()) } else { query = '' } })">
-    @if ($label)
-        <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-tilawa-sub dark:text-[#a9b9bc]">{{ $label }}</span>
-    @endif
     <button type="button" x-ref="trigger" @click="open = !open" x-bind:aria-expanded="open"
-        class="{{ $block ? 'w-full ' : '' }}flex items-center gap-2.5 rounded-xl border border-tilawa-line bg-tilawa-surface py-2.5 pl-4 pr-3.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#f3ead9] dark:hover:border-tilawa-teal">
+        class="flex items-center gap-2.5 rounded-xl border border-tilawa-line bg-tilawa-surface py-2.5 pl-4 pr-3.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#f3ead9] dark:hover:border-tilawa-teal">
         @if ($triggerIcon)
             <x-ui.icon :name="$triggerIcon" class="h-4 w-4 shrink-0 text-tilawa-sub" />
         @endif
-        <span class="truncate {{ $block ? 'flex-1 text-left' : '' }}">{{ $triggerLabel }}</span>
+        <span class="truncate">{{ $triggerLabel }}</span>
         <x-ui.icon name="chevron-down" class="h-[14px] w-[14px] shrink-0 text-tilawa-sub transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" />
     </button>
 

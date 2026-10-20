@@ -87,6 +87,12 @@ function audioPlayer({ surah, total, name }) {
             } catch { /* storage unavailable: defaults apply */ }
             window.addEventListener('pagehide', () => this.teardown(), { once: true });
         },
+        announce() {
+            window.dispatchEvent(new CustomEvent('audio-reciter', { detail: {
+                reciter: this.reciter,
+                list: RECITERS.filter(r => r.qdc).map(r => ({ id: r.id, name: `${r.name} · ${r.style}` })),
+            } }));
+        },
         save() {
             try {
                 localStorage.setItem(STORE, JSON.stringify({ reciter: this.reciter, speed: this.speed, repeat: this.repeat, experience: this.experience }));
@@ -255,6 +261,7 @@ function audioPlayer({ surah, total, name }) {
             if (key === 'speed' && media) media.playbackRate = this.rate();
             if (key === 'repeat') this.repeatLeft = this.repeatCount - 1;
             this.menu = 'main';
+            if (key === 'reciter') this.announce();
             if (key === 'reciter' && this.open) this.switchReciter();
         },
         async switchReciter() {
