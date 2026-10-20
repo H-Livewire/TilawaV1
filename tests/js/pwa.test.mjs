@@ -40,8 +40,9 @@ test('Livewire POST requests and external requests are untouched', () => {
 
 test('manifest icons exist and advertise the required dimensions', () => {
     const manifest = JSON.parse(fs.readFileSync('public/manifest.webmanifest', 'utf8'));
-    for (const size of [192, 512]) {
-        const icon = manifest.icons.find(icon => icon.sizes === `${size}x${size}`);
+    assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable' && icon.sizes === '512x512'));
+    for (const size of [192, 512, 1024]) {
+        const icon = manifest.icons.find(icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any');
         const png = fs.readFileSync(`public${icon.src}`);
         assert.equal(png.readUInt32BE(16), size);
         assert.equal(png.readUInt32BE(20), size);
