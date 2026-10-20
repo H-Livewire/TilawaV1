@@ -1,5 +1,16 @@
 @props(['surah', 'total', 'name'])
 
+@once
+    <style>
+        /* The reciter photo turns while audio plays and keeps its angle when paused. */
+        @keyframes reciter-spin { to { transform: rotate(360deg); } }
+        .reciter-photo { animation: reciter-spin 6s linear infinite; animation-play-state: paused; will-change: transform; }
+        .reciter-photo.is-playing { animation-play-state: running; }
+        @media (prefers-reduced-motion: reduce) { .reciter-photo { animation: none; } }
+    </style>
+@endonce
+
+
 <div x-data="audioPlayer(@js(['surah' => $surah, 'total' => $total, 'name' => $name]))"
     x-on:audio-play.window="play($event.detail)"
     x-on:audio-toggle.window="toggle()"
@@ -132,8 +143,8 @@
                 {{-- Reciter photo: turns while the recitation plays. Sits in a slot the size of the dots button, so Play stays exactly in the middle.
                      Put photos in public/images/reciters/<reciter-id>.jpg --}}
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12" x-data="{ failed: false }" x-init="$watch('reciter', () => failed = false)">
-                    <div class="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-tilawa-teal bg-tilawa-teal-dark text-[11px] font-bold text-white shadow-sm animate-[spin_8s_linear_infinite] motion-reduce:animate-none min-[400px]:h-9 min-[400px]:w-9 sm:h-10 sm:w-10"
-                        x-bind:style="{ animationPlayState: playing ? 'running' : 'paused' }" aria-hidden="true">
+                    <div class="reciter-photo relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-tilawa-teal bg-tilawa-teal-dark text-xs font-bold text-white shadow-md min-[400px]:h-12 min-[400px]:w-12 sm:h-14 sm:w-14"
+                        x-bind:class="playing ? 'is-playing' : ''" aria-hidden="true">
                         <span x-text="(reciters.find(r => r.id === reciter)?.name ?? '').replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()"></span>
                         <img x-show="!failed" x-bind:src="'/images/reciters/' + reciter + '.jpg'" alt="" x-on:error="failed = true" class="absolute inset-0 h-full w-full object-cover">
                     </div>
