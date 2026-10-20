@@ -21,6 +21,13 @@
             Turn off
         </button>
     </div>
+    @unless ($compact)
+        <div x-show="active" x-cloak class="mt-4 flex items-center justify-between gap-4 border-t border-tilawa-line pt-4">
+            <label for="daily-reminder-time" class="text-sm font-semibold text-tilawa-ink">Reminder time</label>
+            <input id="daily-reminder-time" type="time" x-model="prefs.time" @change="changeTime()" :disabled="busy"
+                class="rounded-xl border border-tilawa-line bg-tilawa-paper px-3 py-2 text-sm font-semibold text-tilawa-ink focus:border-tilawa-teal-dark focus:outline-none focus:ring-2 focus:ring-tilawa-teal-dark">
+        </div>
+    @endunless
     <p x-show="problem" x-cloak x-text="problem" role="alert" class="mt-3 rounded-xl bg-[#fff4e0] px-4 py-3 text-xs leading-5 text-[#7A5B14]"></p>
     <p x-show="ready && !supported" x-cloak class="mt-3 text-xs leading-5 text-tilawa-sub">Notifications aren't available in this browser. On iPhone or iPad, add Tilawa to your Home Screen and open it from there.</p>
 </section>

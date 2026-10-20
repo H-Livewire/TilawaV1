@@ -190,6 +190,15 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        /** The reader picked a new time. If today's slot has already passed, the first reminder is tomorrow's. */
+        async changeTime() {
+            this.problem = '';
+            if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(this.prefs.time)) this.prefs.time = '07:00';
+            const now = new Date();
+            this.prefs.lastShown = core().atTime(now, this.prefs.time) <= now ? core().dateKey(now) : null;
+            await this.persist();
+        },
+
         async turnOff() {
             this.problem = '';
             this.busy = true;
