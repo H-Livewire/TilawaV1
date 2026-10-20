@@ -135,7 +135,7 @@
                     <div class="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-tilawa-teal bg-tilawa-teal-dark text-[11px] font-bold text-white shadow-sm animate-[spin_8s_linear_infinite] motion-reduce:animate-none min-[400px]:h-9 min-[400px]:w-9 sm:h-10 sm:w-10"
                         x-bind:style="{ animationPlayState: playing ? 'running' : 'paused' }" aria-hidden="true">
                         <span x-text="(reciters.find(r => r.id === reciter)?.name ?? '').replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()"></span>
-                        <img x-show="!failed" x-bind:src="'/images/reciters/' + reciter + '.jpg'" alt="" @error="failed = true" class="absolute inset-0 h-full w-full object-cover">
+                        <img x-show="!failed" x-bind:src="'/images/reciters/' + reciter + '.jpg'" alt="" x-on:error="failed = true" class="absolute inset-0 h-full w-full object-cover">
                     </div>
                 </div>
             </div>
