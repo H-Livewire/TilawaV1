@@ -66,22 +66,31 @@
         return elapsed >= 0 && elapsed <= CATCH_UP_MS;
     }
 
-    /** Title, body and deep link for the notification, honouring the user's content choices. */
+    /**
+     * Title, body and deep link. The surah and ayah number lead in the title so they are visible even in
+     * the collapsed notification; the body carries the English translation, then the Arabic verse.
+     */
     function compose(ayah, prefs) {
-        const title = 'Ayah of the Day';
-        if (!ayah) return { title, body: 'Take a moment to read today\'s ayah.', url: '/daily-ayah' };
+        const base = 'Ayah of the Day';
+        if (!ayah) return { title: base, body: 'Take a moment to read today\'s ayah.', url: '/daily-ayah' };
         const url = ayah.url || '/daily-ayah';
-        if (prefs.simple) return { title, body: 'Your daily ayah is ready. Take a moment to read it.', url };
+        if (prefs.simple) return { title: base, body: 'Your daily ayah is ready. Take a moment to read it.', url };
         const lines = [];
+        if (prefs.translation) lines.push(ayah.translation);
         if (prefs.arabic) lines.push(ayah.arabic);
-        if (prefs.translation) lines.push(prefs.arabic ? ayah.translation : `“${ayah.translation}”`);
-        if (prefs.reference) lines.push(`— ${ayah.reference}`);
-        return { title, body: lines.join('\n'), url };
+        return {
+            title: prefs.reference ? `${base} · ${ayah.reference}` : base,
+            body: lines.length ? lines.join('\n') : 'Tap to read the ayah.',
+            url,
+        };
     }
+
+    // Android already shows the small Tilawa badge on the left; a second large logo on the right would double it.
+    const onAndroid = () => /Android/i.test((root.navigator && root.navigator.userAgent) || '');
 
     function notificationOptions(ayah, prefs, tag = TAG) {
         const { body, url } = compose(ayah, prefs);
-        return {
+        const options = {
             body,
             icon: '/pwa/notification-icon.png',
             badge: '/pwa/notification-badge.png',
@@ -91,6 +100,8 @@
             data: { url, date: ayah ? ayah.date : dateKey() },
             actions: [{ action: 'read', title: 'Read ayah' }],
         };
+        if (onAndroid()) delete options.icon;
+        return options;
     }
 
     // ---- storage: IndexedDB so the service worker can read the same settings ----
@@ -148,19 +159,18 @@
     /** Title and options for a notification that arrived as a server push payload. */
     function pushOptions(data) {
         const url = typeof data.url === 'string' && data.url.startsWith('/') ? data.url : '/daily-ayah';
-        return {
-            title: typeof data.title === 'string' ? data.title : 'Ayah of the Day',
-            options: {
-                body: typeof data.body === 'string' ? data.body : '',
-                icon: '/pwa/notification-icon.png',
-                badge: '/pwa/notification-badge.png',
-                tag: TAG,
-                lang: typeof data.lang === 'string' ? data.lang : 'en',
-                dir: 'auto',
-                data: { url },
-                actions: [{ action: 'read', title: 'Read ayah' }],
-            },
+        const options = {
+            body: typeof data.body === 'string' ? data.body : '',
+            icon: '/pwa/notification-icon.png',
+            badge: '/pwa/notification-badge.png',
+            tag: TAG,
+            lang: typeof data.lang === 'string' ? data.lang : 'en',
+            dir: 'auto',
+            data: { url },
+            actions: [{ action: 'read', title: 'Read ayah' }],
         };
+        if (onAndroid()) delete options.icon;
+        return { title: typeof data.title === 'string' ? data.title : 'Ayah of the Day', options };
     }
 
     function show(registration, ayah, prefs, tag = TAG) {

@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * Builds the notification text from the user's content choices. Mirrors
+ * Builds the notification text (reference in the title, translation then Arabic in the body) from the user's content choices. Mirrors
  * compose() in public/pwa/daily-ayah-core.js so a push looks the same as a
  * notification the browser builds itself. Verse text is passed through
  * untouched.
@@ -31,19 +31,16 @@ class DailyAyahMessage
         }
 
         $lines = [];
+        if ($prefs['translation']) {
+            $lines[] = $ayah['translation'];
+        }
         if ($prefs['arabic']) {
             $lines[] = $ayah['arabic'];
         }
-        if ($prefs['translation']) {
-            $lines[] = $prefs['arabic'] ? $ayah['translation'] : "“{$ayah['translation']}”";
-        }
-        if ($prefs['reference']) {
-            $lines[] = "— {$ayah['reference']}";
-        }
 
         return [
-            'title' => $title,
-            'body' => implode("\n", $lines),
+            'title' => $prefs['reference'] ? "{$title} · {$ayah['reference']}" : $title,
+            'body' => $lines === [] ? 'Tap to read the ayah.' : implode("\n", $lines),
             'url' => $url,
             'lang' => $prefs['arabic'] && ! $prefs['translation'] ? 'ar' : ($ayah['language'] ?? 'en'),
         ];

@@ -76,11 +76,16 @@ test('a device can be removed', function () {
 test('message content follows the user choices', function () {
     $all = ['arabic' => true, 'translation' => true, 'reference' => true, 'simple' => false];
 
-    expect(DailyAyahMessage::compose(sampleAyah(), $all)['body'])->toBe("ARABIC\nTRANSLATION\n— Al-Baqarah 2:255")
-        ->and(DailyAyahMessage::compose(sampleAyah(), [...$all, 'translation' => false, 'reference' => false])['body'])->toBe('ARABIC')
-        ->and(DailyAyahMessage::compose(sampleAyah(), [...$all, 'arabic' => false, 'reference' => false])['body'])->toBe('“TRANSLATION”')
+    $full = DailyAyahMessage::compose(sampleAyah(), $all);
+    expect($full['title'])->toBe('Ayah of the Day · Al-Baqarah 2:255')
+        ->and($full['body'])->toBe("TRANSLATION\nARABIC")
+        ->and($full['url'])->toBe('/surah/2?ayah=255');
+
+    $arabicOnly = DailyAyahMessage::compose(sampleAyah(), [...$all, 'translation' => false, 'reference' => false]);
+    expect($arabicOnly['body'])->toBe('ARABIC')->and($arabicOnly['title'])->toBe('Ayah of the Day');
+
+    expect(DailyAyahMessage::compose(sampleAyah(), [...$all, 'arabic' => false, 'reference' => false])['body'])->toBe('TRANSLATION')
         ->and(DailyAyahMessage::compose(sampleAyah(), [...$all, 'simple' => true])['body'])->not->toContain('ARABIC')
-        ->and(DailyAyahMessage::compose(sampleAyah(), $all)['url'])->toBe('/surah/2?ayah=255')
         ->and(DailyAyahMessage::compose(null, $all)['url'])->toBe('/daily-ayah');
 });
 

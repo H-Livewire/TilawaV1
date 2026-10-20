@@ -56,15 +56,20 @@ test('due only when enabled, past the time, inside the catch-up window and not y
 test('content choices decide what the notification says', () => {
     const D = load();
     const all = D.compose(ayah, D.normalize({}));
-    assert.equal(all.body, `${ayah.arabic}\n${ayah.translation}\n— ${ayah.reference}`);
+    assert.equal(all.title, `Ayah of the Day · ${ayah.reference}`);
+    assert.equal(all.body, `${ayah.translation}\n${ayah.arabic}`);
     assert.equal(all.url, '/surah/2?ayah=255');
 
-    assert.equal(D.compose(ayah, D.normalize({ translation: false, reference: false })).body, ayah.arabic);
-    assert.equal(D.compose(ayah, D.normalize({ arabic: false, reference: false })).body, `“${ayah.translation}”`);
-    assert.equal(D.compose(ayah, D.normalize({ arabic: false, translation: false })).body, `— ${ayah.reference}`);
+    const arabicOnly = D.compose(ayah, D.normalize({ translation: false, reference: false }));
+    assert.equal(arabicOnly.body, ayah.arabic);
+    assert.equal(arabicOnly.title, 'Ayah of the Day');
+    assert.equal(D.compose(ayah, D.normalize({ arabic: false, reference: false })).body, ayah.translation);
+    const referenceOnly = D.compose(ayah, D.normalize({ arabic: false, translation: false }));
+    assert.equal(referenceOnly.title, `Ayah of the Day · ${ayah.reference}`);
+    assert.ok(referenceOnly.body.length > 0);
 
     const simple = D.compose(ayah, D.normalize({ simple: true }));
-    assert.ok(!simple.body.includes(ayah.arabic) && !simple.body.includes(ayah.reference));
+    assert.ok(!simple.body.includes(ayah.arabic) && !simple.title.includes(ayah.reference));
     assert.equal(simple.url, '/surah/2?ayah=255');
 });
 
@@ -84,6 +89,17 @@ test('notification uses the Tilawa logo icon and carries the deep link', () => {
     assert.equal(options.tag, 'tilawa-daily-ayah');
 });
 
+test('Android shows only the small badge on the left; other platforms keep the large logo', () => {
+    const module = { exports: {} };
+    const root = { navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-A556E) Chrome/120' }, Notification: { permission: 'granted' } };
+    vm.runInNewContext(fs.readFileSync('public/pwa/daily-ayah-core.js', 'utf8'), { module, self: root, globalThis: root, Date, Promise, encodeURIComponent, Intl });
+    const D = module.exports;
+    assert.equal(D.notificationOptions(ayah, D.normalize({})).icon, undefined);
+    assert.equal(D.notificationOptions(ayah, D.normalize({})).badge, '/pwa/notification-badge.png');
+    assert.equal(D.pushOptions({ title: 'x', body: 'y', url: '/a' }).options.icon, undefined);
+    assert.equal(load().notificationOptions(ayah, load().normalize({})).icon, '/pwa/notification-icon.png');
+});
+
 test('deliver shows one notification per day', async () => {
     const D = load();
     await D.savePrefs({ enabled: true, time: '07:00' });
@@ -91,7 +107,7 @@ test('deliver shows one notification per day', async () => {
     assert.equal(await D.deliver(reg, { now: at(7, 5) }), 'shown');
     assert.equal(await D.deliver(reg, { now: at(7, 6) }), 'skipped');
     assert.equal(reg.shown.length, 1);
-    assert.equal(reg.shown[0].title, 'Ayah of the Day');
+    assert.equal(reg.shown[0].title, `Ayah of the Day · ${ayah.reference}`);
     assert.equal((await D.loadPrefs()).lastShown, '2026-10-20');
     assert.equal(await D.deliver(reg, { now: at(7, 5, 21) }), 'shown');
 });
