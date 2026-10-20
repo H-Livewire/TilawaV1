@@ -16,7 +16,7 @@
     $cell = 'flex h-11 items-center justify-center rounded-xl text-sm font-semibold transition hover:bg-tilawa-line dark:hover:bg-white/10';
 @endphp
 
-<div class="relative"
+<div {{ $attributes->class(['relative']) }}
     x-data="{
         open: false, tab: 'surah', query: '',
         placeholders: { surah: 'Search surah', verse: 'Search verse', juz: 'Search juz', page: 'Search page' },
@@ -49,7 +49,7 @@
     x-init="$watch('open', value => { if (value) $nextTick(() => setTimeout(() => reveal(), 60)) })"
     @keydown.escape.window="close()">
     <button type="button" @click="open = true"
-        class="flex items-center gap-2.5 rounded-xl border border-tilawa-line bg-tilawa-surface py-2.5 pl-4 pr-3.5 text-sm font-bold text-tilawa-ink shadow-sm transition hover:border-tilawa-teal dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#f3ead9] dark:hover:border-tilawa-teal">
+        class="flex w-full items-center justify-between gap-1.5 rounded-xl border border-tilawa-line bg-tilawa-surface py-2.5 pl-3 pr-2.5 text-[13px] font-bold sm:w-auto sm:justify-start sm:gap-2.5 sm:pl-4 sm:pr-3.5 sm:text-sm text-tilawa-ink shadow-sm transition hover:border-tilawa-teal dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#f3ead9] dark:hover:border-tilawa-teal">
         <span class="truncate">{{ $label }}</span>
         <x-ui.icon name="chevron-down" class="h-[14px] w-[14px] shrink-0 text-tilawa-sub" />
     </button>

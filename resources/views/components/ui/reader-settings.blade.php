@@ -2,7 +2,7 @@
 
 {{-- Gear button + right-hand drawer with the reader settings. Quran state goes through $wire (Reading.php);
      sizes and show/hide choices live in the reader store (resources/js/reader-prefs.js). --}}
-<div x-data="{ open: false }" @keydown.escape.window="open = false">
+<div class="shrink-0" x-data="{ open: false }" @keydown.escape.window="open = false">
     <button type="button" @click="open = true" aria-label="Reader settings" title="Reader settings"
         class="flex h-10 w-10 items-center justify-center rounded-xl border border-tilawa-line bg-tilawa-surface text-tilawa-sub shadow-sm transition hover:border-tilawa-teal hover:text-tilawa-teal-dark dark:border-white/10 dark:bg-[#1c2b30] dark:text-[#a9b9bc]">
         <x-ui.icon name="settings" class="h-[19px] w-[19px]" />
