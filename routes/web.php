@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\AyahOfTheDayController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\DailyAyahReminderController;
 use App\Http\Controllers\LibraryPdfController;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Bookmarks;
+use App\Livewire\DailyAyah;
 use App\Livewire\Home;
 use App\Livewire\IslamicLibrary;
 use App\Livewire\Juz;
@@ -26,6 +29,8 @@ Route::get('/terms', Terms::class)->name('terms');
 Route::get('/privacy', Privacy::class)->name('privacy');
 
 Route::get('/home', Home::class)->name('home');
+Route::get('/daily-ayah', DailyAyah::class)->name('daily-ayah');
+Route::get('/daily-ayah/today', AyahOfTheDayController::class)->middleware('throttle:60,1')->name('daily-ayah.today');
 Route::get('/library', IslamicLibrary::class)->name('library');
 Route::get('/library/hisnul-muslim/read', [LibraryPdfController::class, 'reader'])->name('library.hisnul-muslim.reader');
 Route::get('/library/hisnul-muslim/pdf', LibraryPdfController::class)->name('library.hisnul-muslim.pdf');
@@ -53,6 +58,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/bookmarks', Bookmarks::class)->name('bookmarks');
     Route::get('/profile', Profile::class)->name('profile');
+    Route::put('/daily-ayah/reminder', [DailyAyahReminderController::class, 'update'])->middleware('throttle:30,1')->name('daily-ayah.reminder.update');
+    Route::delete('/daily-ayah/reminder', [DailyAyahReminderController::class, 'destroy'])->middleware('throttle:30,1')->name('daily-ayah.reminder.destroy');
 
     Route::post('/logout', function () {
         Auth::logout();

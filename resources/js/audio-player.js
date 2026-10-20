@@ -4,21 +4,28 @@
 // spans are matched through their data-audio-word="surah:ayah:index" attribute.
 const API = 'https://api.quran.com/api/v4/chapter_recitations';
 const WORD_CLASS = 'audio-word-active';
+// qdc = Quran.com chapter-recitation id; null until that reciter's id is known.
 const RECITERS = [
-    { id: 'abdulbaset-mujawwad', name: 'AbdulBaset AbdulSamad', style: 'Mujawwad', qdc: null },
-    { id: 'abdulbaset-murattal', name: 'AbdulBaset AbdulSamad', style: 'Murattal', qdc: null },
-    { id: 'abdullah-ali-jabir', name: 'Abdullah Ali Jabir - beta', style: 'Murattal', qdc: null },
-    { id: 'abdur-rahman-as-sudais', name: 'Abdur-Rahman as-Sudais', style: 'Murattal', qdc: null },
-    { id: 'abu-bakr-al-shatri', name: 'Abu Bakr al-Shatri', style: 'Murattal', qdc: null },
-    { id: 'ahmed-al-ajmy', name: 'Ahmed ibn Ali al-Ajmy - beta', style: 'Murattal', qdc: null },
-    { id: 'bandar-baleela', name: 'Bandar Baleela - beta', style: 'Murattal', qdc: null },
-    { id: 'hani-ar-rifai', name: 'Hani ar-Rifai', style: 'Murattal', qdc: null },
-    { id: 'khalifah-al-tunaiji', name: 'Khalifah Al Tunaiji', style: 'Murattal', qdc: null },
-    { id: 'maher-al-muaiqly', name: 'Maher al-Muaiqly - beta', style: 'Murattal', qdc: null },
-    { id: 'mahmoud-khalil-al-husary', name: 'Mahmoud Khalil Al-Husary', style: 'Murattal', qdc: null },
+    { id: 'abdulbaset-mujawwad', name: 'AbdulBaset AbdulSamad', style: 'Mujawwad', qdc: 1 },
+    { id: 'abdulbaset-murattal', name: 'AbdulBaset AbdulSamad', style: 'Murattal', qdc: 2 },
+    { id: 'abdullah-ali-jabir', name: 'Abdullah Ali Jabir - beta', style: 'Murattal', qdc: 158 },
+    { id: 'abdur-rahman-as-sudais', name: 'Abdur-Rahman as-Sudais', style: 'Murattal', qdc: 3 },
+    { id: 'abu-bakr-al-shatri', name: 'Abu Bakr al-Shatri', style: 'Murattal', qdc: 4 },
+    { id: 'ahmed-al-ajmy', name: 'Ahmed ibn Ali al-Ajmy - beta', style: 'Murattal', qdc: 19 },
+    { id: 'bandar-baleela', name: 'Bandar Baleela - beta', style: 'Murattal', qdc: 160 },
+    { id: 'hani-ar-rifai', name: 'Hani ar-Rifai', style: 'Murattal', qdc: 5 },
+    { id: 'khalifah-al-tunaiji', name: 'Khalifah Al Tunaiji', style: 'Murattal', qdc: 161 },
+    { id: 'maher-al-muaiqly', name: 'Maher al-Muaiqly - beta', style: 'Murattal', qdc: 159 },
+    { id: 'mahmoud-khalil-al-husary', name: 'Mahmoud Khalil Al-Husary', style: 'Murattal', qdc: 6 },
     { id: 'mishari-al-afasy', name: 'Mishari Rashid al-`Afasy', style: 'Murattal', qdc: 7 },
-    { id: 'mohamed-siddiq-al-minshawi', name: 'Mohamed Siddiq al-Minshawi', style: 'Murattal', qdc: null },
-    { id: 'saad-al-ghamdi', name: 'Saad al-Ghamdi', style: 'Murattal', qdc: null },
+    { id: 'mohamed-siddiq-al-minshawi', name: 'Mohamed Siddiq al-Minshawi', style: 'Murattal', qdc: 9 },
+    { id: 'saad-al-ghamdi', name: 'Saad al-Ghamdi', style: 'Murattal', qdc: 13 },
+    { id: 'saud-ash-shuraim', name: "Sa`ud ash-Shuraym", style: 'Murattal', qdc: 10 },
+    { id: 'ahmed-abdelhamid-tahoun', name: 'Ahmed Abdelhamid Tahoun - beta', style: 'Murattal', qdc: null },
+    { id: 'abdullah-hamad-abu-sharida', name: 'Abdullah Hamad Abu Sharida - beta', style: 'Murattal', qdc: null },
+    { id: 'mahmoud-khalil-al-husary-muallim', name: 'Mahmoud Khalil Al-Husary', style: 'Muallim', qdc: 12 },
+    { id: 'mohamed-siddiq-al-minshawi-kids', name: 'Mohamed Siddiq al-Minshawi', style: 'Kids repeat', qdc: 168 },
+    { id: 'yasser-ad-dussary', name: 'Yasser Ad Dussary', style: 'Murattal', qdc: 97 },
 ];
 const STORE = 'tilawa.audio';
 const timingCache = new Map();
@@ -32,7 +39,11 @@ async function fetchChapter(qdc, surah) {
     if (!file?.audio_url || !Array.isArray(file.timestamps)) throw new Error('Audio unavailable');
     const verses = {};
     for (const item of file.timestamps) {
-        verses[Number(item.verse_key.split(':')[1])] = { from: item.timestamp_from, to: item.timestamp_to, segments: item.segments ?? [] };
+        // Some recordings leave a segment's end open: close it at the next word / the ayah end.
+        const segments = (item.segments ?? [])
+            .map((seg, i, all) => [seg[0], seg[1], seg[2] ?? all[i + 1]?.[1] ?? item.timestamp_to])
+            .filter(seg => Number.isFinite(seg[1]) && Number.isFinite(seg[2]));
+        verses[Number(item.verse_key.split(':')[1])] = { from: item.timestamp_from, to: item.timestamp_to, segments };
     }
     const chapter = { key, url: file.audio_url, verses };
     timingCache.set(key, chapter);
@@ -244,6 +255,23 @@ function audioPlayer({ surah, total, name }) {
             if (key === 'speed' && media) media.playbackRate = this.rate();
             if (key === 'repeat') this.repeatLeft = this.repeatCount - 1;
             this.menu = 'main';
+            if (key === 'reciter' && this.open) this.switchReciter();
+        },
+        async switchReciter() {
+            const wasPlaying = this.playing;
+            cancelAnimationFrame(frame);
+            this.playing = false;
+            this.clearWord();
+            this.error = null;
+            try {
+                await this.load();
+            } catch {
+                this.fail('Recitation is unavailable right now');
+                return;
+            }
+            if (wasPlaying) await this.start(this.ayah, true);
+            else if (chapter?.verses[this.ayah] && media) media.currentTime = chapter.verses[this.ayah].from / 1000;
+            this.emit();
         },
 
         // --- following the recitation -------------------------------------

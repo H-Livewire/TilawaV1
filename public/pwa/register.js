@@ -5,8 +5,8 @@
     let installPrompt;
     let hideTimer;
     let frame;
-    let dismissedUntil = 0;
-    try { dismissedUntil = Number(localStorage.getItem('tilawa-install-dismissed-until')) || 0; } catch {}
+    // "Not now" only lasts for this visit: until Tilawa is installed on this device the offer returns next time.
+    let dismissed = false;
     const standalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     const hideBanner = () => {
         cancelAnimationFrame(frame);
@@ -21,7 +21,7 @@
         document.querySelectorAll('[data-install-tilawa]').forEach(button => { button.hidden = !available; });
         const banner = document.getElementById('tilawa-install');
         if (!banner) return;
-        if (!available || Date.now() < dismissedUntil) { hideBanner(); return; }
+        if (!available || dismissed) { hideBanner(); return; }
         clearTimeout(hideTimer);
         cancelAnimationFrame(frame);
         banner.hidden = false;
@@ -30,8 +30,7 @@
         });
     };
     const dismiss = () => {
-        dismissedUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        try { localStorage.setItem('tilawa-install-dismissed-until', String(dismissedUntil)); } catch {}
+        dismissed = true;
         hideBanner();
     };
     window.addEventListener('beforeinstallprompt', event => {

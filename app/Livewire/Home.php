@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exceptions\QuranApiException;
+use App\Services\AyahOfTheDay;
 use App\Services\QuranService;
 use App\Services\ReadingState;
 use Livewire\Attributes\Computed;
@@ -84,6 +85,20 @@ class Home extends Component
             ->filter()
             ->values()
             ->all();
+    }
+
+    /** Today's ayah for the home card; null (card hidden) if the Qur'an API can't be reached. */
+    #[Computed]
+    public function dailyAyah(): ?array
+    {
+        try {
+            return app(AyahOfTheDay::class)->forDate(null, app(ReadingState::class)->language());
+        } catch (\Throwable $e) {
+            // Purely decorative on this page: never let it take the surah list down.
+            report($e);
+
+            return null;
+        }
     }
 
     /** Where the user left off, if anywhere — powers the "Continue reading" banner. */

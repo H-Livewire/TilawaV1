@@ -25,21 +25,10 @@
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center gap-3 px-6 pt-6 md:px-12">
-        <x-ui.drawer title="Choose a surah" :trigger-label="$number . '. ' . $this->surah['englishName']" search-placeholder="Search surah by name or number...">
-            @foreach ($this->surahList as $item)
-                <button type="button" wire:click="goToSurah({{ $item['number'] }})" @click="open = false"
-                    x-show="query === '' || @js(\Illuminate\Support\Str::lower($item['englishName'].' '.$item['number'])).includes(query.toLowerCase())"
-                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-tilawa-line dark:hover:bg-white/10 {{ $item['number'] === $number ? 'bg-tilawa-teal-light/40 font-bold text-tilawa-teal-dark dark:bg-tilawa-teal/20 dark:text-tilawa-teal-light' : 'text-tilawa-ink dark:text-[#f3ead9]' }}">
-                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-tilawa-line text-xs font-bold text-tilawa-sub dark:border-white/10 dark:text-[#a9b9bc]">
-                        {{ $item['number'] }}
-                    </span>
-                    <span class="grow truncate">{{ $item['englishName'] }}</span>
-                    <span class="font-arabic shrink-0 text-base text-tilawa-sub">{{ $item['name'] }}</span>
-                </button>
-            @endforeach
-        </x-ui.drawer>
+        <x-ui.surah-nav :surahs="$this->surahList" :current="$number" :ayah-count="$this->surah['numberOfAyahs']" :ayah="$focusedAyah" :mode="$mode" :page="$physicalPage"
+            :label="$number . '. ' . $this->surah['englishName']" />
 
-        <x-ui.drawer title="Choose a translation" trigger-icon="globe" :trigger-label="$this->translationLanguages[$translationLanguage]" search-placeholder="Search language or translator...">
+        <x-ui.dropdown title="Choose a translation" trigger-icon="globe" :trigger-label="$this->translationLanguages[$translationLanguage]" search-placeholder="Search language or translator...">
             @foreach ($this->translationLanguages as $code => $label)
                 <button type="button" wire:click="setTranslationLanguage('{{ $code }}')" @click="open = false"
                     x-show="query === '' || @js(\Illuminate\Support\Str::lower($label.' '.$this->translatorCredits[$code])).includes(query.toLowerCase())"
@@ -53,7 +42,9 @@
                     @endif
                 </button>
             @endforeach
-        </x-ui.drawer>
+        </x-ui.dropdown>
+
+        <x-ui.tafsir-menu />
 
         <button type="button" wire:click="toggleTajweed" title="Highlight Tajweed rules in the Arabic text"
             class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold shadow-sm transition {{ $tajweedEnabled ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950' : 'border-tilawa-line bg-tilawa-surface hover:border-cyan-300' }}">
@@ -159,6 +150,33 @@
                         @else
                             <p class="text-[15px] leading-relaxed text-tilawa-ink">{{ $ayah['translation'] }}</p>
                         @endif
+                        <div class="mt-3 border-t border-tilawa-line pt-2"
+                            x-data="{
+                                shown: false, loading: false, failed: false, html: '', note: '',
+                                async load() {
+                                    this.loading = true; this.failed = false;
+                                    try { const result = await $store.tafsir.fetchAyah({{ $this->number }}, {{ $ayah['number'] }}); this.html = result.html; this.note = result.note; }
+                                    catch { this.failed = true; }
+                                    this.loading = false;
+                                },
+                                toggle() { this.shown = !this.shown; if (this.shown && !this.html) this.load(); },
+                            }"
+                            x-on:tafsir-changed.window="if (shown) load()">
+                            <button type="button" @click="toggle()" x-bind:aria-expanded="shown"
+                                class="flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-semibold text-tilawa-sub transition hover:text-tilawa-ink">
+                                <x-ui.icon name="book" class="h-4 w-4" />
+                                <span>Tafsir</span>
+                                <x-ui.icon name="chevron-down" class="h-[13px] w-[13px] transition-transform duration-200" x-bind:class="shown ? 'rotate-180' : ''" />
+                            </button>
+                            <div wire:ignore x-show="shown" x-cloak x-transition.opacity.duration.150ms class="pt-2">
+                                <div class="mb-3"><x-ui.tafsir-picker /></div>
+                                <p x-show="loading" class="text-sm text-tilawa-sub">Loading tafsir…</p>
+                                <p x-show="failed" class="text-sm text-red-500">Tafsir is unavailable right now. <button type="button" class="font-semibold underline" @click="load()">Try again</button></p>
+                                <p x-show="note && !loading" x-text="note" class="mb-3 rounded-lg bg-tilawa-paper/70 px-3 py-2 text-xs text-tilawa-sub dark:bg-white/5"></p>
+                                <div x-show="!loading && !failed" x-html="html" x-bind:dir="$store.tafsir.rtl ? 'rtl' : 'ltr'" class="tafsir-body text-[15px] leading-relaxed text-tilawa-ink"></div>
+                                <p x-show="!loading && !failed && html" x-text="'Source: ' + $store.tafsir.credit" class="mt-3 text-xs text-tilawa-sub"></p>
+                            </div>
+                        </div>
                     </div>
                 @endforeach
             </div>

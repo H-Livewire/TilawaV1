@@ -29,6 +29,8 @@
     {{-- Content --}}
     <div class="px-6 py-8 md:px-12">
         <div class="mx-auto flex max-w-xl flex-col gap-6">
+            <x-daily-reminder />
+
 
             {{-- Appearance --}}
             <div class="rounded-2xl border border-tilawa-line bg-tilawa-surface p-6">

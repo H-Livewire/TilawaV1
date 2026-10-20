@@ -126,3 +126,11 @@ html.dark .tajweed-group-silent { color: #9ca3af; }
 }
 
 @import './library.css';
+
+/* Tafsir text (sanitised HTML from Quran.com) */
+.tafsir-body h1, .tafsir-body h2, .tafsir-body h3, .tafsir-body h4 { margin: 0.9rem 0 0.4rem; font-size: 1.05rem; font-weight: 700; }
+.tafsir-body p { margin: 0.55rem 0; line-height: 1.75; }
+.tafsir-body ul, .tafsir-body ol { margin: 0.5rem 0; padding-inline-start: 1.25rem; }
+.tafsir-body ul { list-style: disc; }
+.tafsir-body ol { list-style: decimal; }
+.tafsir-body blockquote { margin: 0.6rem 0; padding-inline-start: 0.9rem; border-inline-start: 3px solid var(--color-tilawa-line); }

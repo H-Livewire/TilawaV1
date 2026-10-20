@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-col justify-between gap-4 border-t border-[#b3d5d2] pt-6 text-xs leading-6 text-[#36565c] md:flex-row">
             <p>&copy; {{ now()->year }} Tilawa. All rights reserved.</p>
-            <p>Qur'an content by <a href="https://alquran.cloud" target="_blank" rel="noopener noreferrer" class="underline hover:text-[#084c55] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">Al Quran Cloud</a>. Word details &amp; Tajweed by <a href="https://quran.com" target="_blank" rel="noopener noreferrer" class="underline hover:text-[#084c55] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">Quran.com</a>.</p>
+            <p>Qur'an content by <a href="https://alquran.cloud" target="_blank" rel="noopener noreferrer" class="underline hover:text-[#084c55] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">Al Quran Cloud</a>. Word details &amp; Tajweed by <a href="https://quran.com" target="_blank" rel="noopener noreferrer" class="underline hover:text-[#084c55] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">Quran.com</a>. Tafsir: Ibn Kathir (Abridged) by Hafiz Ibn Kathir and Ma&#039;arif al-Qur&#039;an by Mufti Muhammad Shafi, via Quran.com.</p>
         </div>
     </div>
 </footer>

@@ -29,6 +29,24 @@
         </div>
     </section>
 
+    {{-- Ayah of the Day --}}
+    @if ($this->dailyAyah)
+        <div class="px-6 pt-6 md:px-12">
+            <a href="{{ route('surah.show', ['number' => $this->dailyAyah['surah'], 'ayah' => $this->dailyAyah['ayah']]) }}" wire:navigate
+                class="mx-auto block max-w-2xl rounded-2xl border border-tilawa-line bg-tilawa-surface px-5 py-4 shadow-sm transition hover:border-tilawa-teal hover:shadow-md">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs font-bold uppercase tracking-wide text-tilawa-gold">Ayah of the Day</div>
+                    <div class="text-xs font-semibold text-tilawa-sub">{{ $this->dailyAyah['reference'] }}</div>
+                </div>
+                <p lang="ar" dir="rtl" class="font-arabic mt-3 line-clamp-2 text-xl leading-[2.2] text-tilawa-ink">{{ $this->dailyAyah['arabic'] }}</p>
+                <p class="mt-2 line-clamp-2 text-sm leading-6 text-tilawa-sub">{{ $this->dailyAyah['translation'] }}</p>
+            </a>
+            @auth
+                <div class="mx-auto mt-3 max-w-2xl"><x-daily-reminder compact /></div>
+            @endauth
+        </div>
+    @endif
+
     {{-- Continue reading --}}
     @if ($this->lastRead)
         <div class="px-6 pt-6 md:px-12">

@@ -72,4 +72,15 @@ return [
         'translation_id' => env('WORDS_API_TRANSLATION_ID', 131),
     ],
 
+    // Web Push (VAPID) for the signed-in daily-ayah reminder. Generate a pair
+    // with `php artisan ayah:vapid`. Without keys, reminders fall back to the
+    // in-browser notifications that only fire while Tilawa is open.
+    'webpush' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        // TEMPORARY testing aid: true sends the reminder every minute instead of once a day. Leave unset/false in production.
+        'test_every_minute' => (bool) env('DAILY_AYAH_TEST_EVERY_MINUTE', false),
+        'subject' => env('VAPID_SUBJECT', 'mailto:'.env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+    ],
+
 ];

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
 
-function setup({ installed = false, dismissed = 0 } = {}) {
+function setup({ installed = false } = {}) {
     const listeners = {};
     const classes = new Set();
     const banner = {hidden: true, classList: {add: name => classes.add(name), remove: name => classes.delete(name)}};
     const button = {hidden: true};
-    const storage = new Map([['tilawa-install-dismissed-until', String(dismissed)]]);
+    const storage = new Map();
     class Element { constructor(selector) { this.selector = selector; } closest(selector) { return selector === this.selector ? this : null; } }
     const context = {
         navigator: {serviceWorker: {register: async () => {}}},
@@ -36,18 +36,22 @@ test('banner waits for install eligibility, and calls the browser prompt only on
     assert.equal(state.banner.hidden, true);
 });
 
-test('dismissal lasts through navigation and keeps manual install available', async () => {
+test('dismissal lasts for the visit, keeps manual install available, and is not remembered', async () => {
     const state = setup();
     state.listeners.beforeinstallprompt({preventDefault() {}});
     await state.click('[data-dismiss-tilawa]');
     state.listeners['livewire:navigated']();
     assert.equal(state.banner.hidden, true);
     assert.equal(state.button.hidden, false);
-    assert.ok(Number(state.storage.get('tilawa-install-dismissed-until')) > Date.now());
+    assert.equal(state.storage.size, 0);
+    // A fresh visit (e.g. a device that still hasn't installed Tilawa) offers the install again.
+    const next = setup();
+    next.listeners.beforeinstallprompt({preventDefault() {}});
+    assert.equal(next.banner.hidden, false);
 });
 
-test('installed apps and previously dismissed banners do not pop up', () => {
-    for (const options of [{installed: true}, {dismissed: Date.now() + 60000}]) {
+test('installed apps do not get the install banner', () => {
+    for (const options of [{installed: true}]) {
         const state = setup(options);
         state.listeners.beforeinstallprompt({preventDefault() {}});
         assert.equal(state.banner.hidden, true);

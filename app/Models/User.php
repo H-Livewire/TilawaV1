@@ -30,6 +30,24 @@ class User extends Authenticatable
         return $this->hasMany(Bookmark::class);
     }
 
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /** Daily-ayah reminder choices in the same shape the browser uses. */
+    public function dailyAyahPreferences(): array
+    {
+        return [
+            'enabled' => (bool) $this->daily_ayah_enabled,
+            'time' => $this->daily_ayah_time ?: '07:00',
+            'arabic' => (bool) ($this->daily_ayah_arabic ?? true),
+            'translation' => (bool) ($this->daily_ayah_translation ?? true),
+            'reference' => (bool) ($this->daily_ayah_reference ?? true),
+            'simple' => (bool) $this->daily_ayah_simple,
+        ];
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -55,6 +73,12 @@ class User extends Authenticatable
             'last_read_surah' => 'integer',
             'last_read_ayah' => 'integer',
             'tajweed_enabled' => 'boolean',
+            'daily_ayah_enabled' => 'boolean',
+            'daily_ayah_arabic' => 'boolean',
+            'daily_ayah_translation' => 'boolean',
+            'daily_ayah_reference' => 'boolean',
+            'daily_ayah_simple' => 'boolean',
+            'daily_ayah_last_sent_on' => 'date',
         ];
     }
 }
