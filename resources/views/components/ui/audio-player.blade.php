@@ -10,12 +10,21 @@
     <div x-cloak x-show="open" x-transition.opacity.duration.150ms role="region" aria-label="Recitation player"
         class="fixed inset-x-0 bottom-0 z-50 border-t border-tilawa-line bg-tilawa-surface shadow-[0_-8px_24px_rgba(0,0,0,.12)]">
         <p x-cloak x-show="error || loading" class="px-4 pt-2 text-center text-xs font-semibold sm:hidden" x-bind:class="error ? 'text-red-500' : 'text-tilawa-sub'" x-text="statusText"></p>
-        <div class="relative mx-auto flex max-w-3xl items-center justify-center gap-1 px-4 py-3 sm:gap-2">
+        <div class="relative mx-auto flex max-w-3xl items-center justify-center gap-0.5 px-3 py-3 min-[400px]:px-4 sm:gap-2">
+            {{-- Reciter photo: turns while the recitation plays. Put photos in public/images/reciters/<reciter-id>.jpg --}}
+            <div class="hidden h-8 w-8 shrink-0 min-[340px]:block min-[400px]:h-9 min-[400px]:w-9 sm:h-10 sm:w-10" x-data="{ failed: false }" x-init="$watch('reciter', () => failed = false)">
+                <div class="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-tilawa-teal bg-tilawa-teal-dark text-[11px] font-bold text-white shadow-sm motion-reduce:animate-none animate-[spin_8s_linear_infinite]"
+                    x-bind:style="{ animationPlayState: playing ? 'running' : 'paused' }" aria-hidden="true">
+                    <span x-text="(reciters.find(r => r.id === reciter)?.name ?? '').replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()"></span>
+                    <img x-show="!failed" x-bind:src="'/images/reciters/' + reciter + '.jpg'" alt="" @error="failed = true" class="absolute inset-0 h-full w-full object-cover">
+                </div>
+            </div>
+
             {{-- Options menu --}}
             <div class="relative" x-on:click.outside="menu = null">
                 <button type="button" aria-label="More options" x-bind:aria-expanded="menu !== null"
                     @click="menu = menu ? null : 'main'"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
                     <x-ui.icon name="dots" class="h-[22px] w-[22px]" />
                 </button>
 
@@ -104,21 +113,21 @@
             {{-- Transport --}}
             <div class="contents">
                 <button type="button" aria-label="Volume" @click="toggleMute()"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
                     <x-ui.icon name="volume" class="h-[22px] w-[22px]" x-show="!muted" />
                     <x-ui.icon name="volume-off" class="h-[22px] w-[22px]" x-cloak x-show="muted" />
                 </button>
                 <button type="button" aria-label="Previous ayah" @click="step(-1)" x-bind:disabled="ayah <= 1"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line disabled:opacity-35">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line disabled:opacity-35">
                     <x-ui.icon name="skip-prev" class="h-[22px] w-[22px]" />
                 </button>
                 <button type="button" x-bind:aria-label="playing ? 'Pause' : 'Play'" @click="toggle()"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-tilawa-teal text-white transition hover:opacity-90">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-tilawa-teal text-white transition hover:opacity-90">
                     <x-ui.icon name="play" class="h-[22px] w-[22px]" x-show="!playing" />
                     <x-ui.icon name="pause" class="h-[22px] w-[22px]" x-cloak x-show="playing" />
                 </button>
                 <button type="button" aria-label="Next ayah" @click="step(1)" x-bind:disabled="ayah >= total"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line disabled:opacity-35">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line disabled:opacity-35">
                     <x-ui.icon name="skip-next" class="h-[22px] w-[22px]" />
                 </button>
             </div>
@@ -126,11 +135,13 @@
             <div class="contents">
                 <span class="absolute right-4 top-1/2 hidden max-w-[11rem] -translate-y-1/2 truncate text-xs font-semibold sm:inline" x-bind:class="error ? 'text-red-500' : 'text-tilawa-sub'" x-text="statusText"></span>
                 <button type="button" aria-label="Close player" @click="close()"
-                    class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
+                    class="flex h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-tilawa-ink transition hover:bg-tilawa-line">
                     <x-ui.icon name="close" class="h-[22px] w-[22px]" />
                 </button>
                 {{-- Invisible twin of the dots button: keeps Play exactly in the middle with equal spacing on both sides --}}
-                <span class="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true"></span>
+                <span class="h-9 w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12" aria-hidden="true"></span>
+                {{-- ...and of the reciter photo on the left --}}
+                <span class="hidden h-8 w-8 shrink-0 min-[340px]:block min-[400px]:h-9 min-[400px]:w-9 sm:h-10 sm:w-10" aria-hidden="true"></span>
             </div>
         </div>
     </div>
