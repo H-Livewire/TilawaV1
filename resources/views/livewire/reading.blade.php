@@ -24,7 +24,7 @@
     </div>
 
     {{-- Toolbar --}}
-    <div class="flex flex-wrap items-center gap-3 px-6 pt-6 md:px-12">
+    <div class="relative flex flex-wrap items-center gap-3 px-6 pt-6 md:px-12">
         <x-ui.surah-nav :surahs="$this->surahList" :current="$number" :ayah-count="$this->surah['numberOfAyahs']" :ayah="$focusedAyah" :mode="$mode" :page="$physicalPage"
             :label="$number . '. ' . $this->surah['englishName']" />
 
