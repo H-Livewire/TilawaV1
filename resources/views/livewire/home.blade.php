@@ -2,12 +2,11 @@
     <x-ui.site-header />
     <main>
     <section class="border-b border-tilawa-line bg-tilawa-paper py-8 sm:py-10">
-        <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-tilawa-teal-dark dark:text-tilawa-teal-light">Read at your own pace</p>
-            <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-tilawa-ink md:text-4xl">The Qur'an, within reach.</h1>
-            <p class="mt-3 text-sm leading-7 text-tilawa-sub">Explore all 114 surahs, browse by juz, or find a printed page. Open a surah to begin reading.</p>
+        <div class="mx-auto max-w-6xl px-5 text-center sm:px-8 lg:px-10">
+            <h1 class="text-3xl font-extrabold tracking-tight text-tilawa-ink md:text-4xl">The Qur'an, within reach.</h1>
+            <p class="mx-auto mt-3 max-w-2xl text-sm leading-7 text-tilawa-sub">Explore all 114 surahs, browse by juz, or find a printed page. Open a surah to begin reading.</p>
 
-            <div class="relative mt-6 flex max-w-2xl flex-col items-start gap-4">
+            <div class="relative mx-auto mt-6 flex max-w-2xl flex-col items-center gap-4">
             @if ($tab === 'surah')
                 <div class="flex w-full items-center gap-2.5 rounded-2xl border border-tilawa-line bg-tilawa-surface px-4.5 py-3.5 shadow-lg focus-within:border-tilawa-teal-dark focus-within:ring-2 focus-within:ring-tilawa-teal-dark dark:focus-within:border-tilawa-teal-light dark:focus-within:ring-tilawa-teal-light">
                     <x-ui.icon name="search" class="h-[18px] w-[18px] shrink-0 text-tilawa-sub/70" />
@@ -17,7 +16,7 @@
                 </div>
             @endif
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center justify-center gap-2">
                 <span class="text-xs font-semibold text-tilawa-sub">Popular:</span>
                 @foreach ($this->popularSurahDetails as $surah)
                     <a href="{{ route('surah.show', $surah['number']) }}" wire:navigate
@@ -30,8 +29,8 @@
         </div>
     </section>
 
-    {{-- Ayah of the Day + Continue reading: same left edge as the header, side by side on wide screens --}}
-    <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10 grid gap-4 pt-6 lg:grid-cols-2">
+    {{-- Ayah of the Day + Continue reading: centred, one under the other --}}
+    <div class="mx-auto flex max-w-2xl flex-col gap-4 px-5 pt-6 sm:px-8">
     {{-- Ayah of the Day --}}
     @if ($this->dailyAyah)
         <div>
