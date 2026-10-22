@@ -12,7 +12,7 @@
                 <img src="{{ asset('ruqraimage/ChatGPT Image Sep 25, 2026, 05_19_18 PM.png') }}" alt="An open Qur'an on a wooden stand" width="1397" height="1124" class="h-auto w-full object-contain">
             </div>
         </section>
-        <section id="passages" class="mx-auto max-w-6xl px-6 py-12 sm:px-8 lg:px-10">
+        <section id="passages" class="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:px-10">
             <h2 class="text-2xl font-extrabold text-tilawa-ink">Surahs and ayahs to read</h2>
             <p class="mt-3 max-w-3xl text-sm leading-7 text-tilawa-sub">A selected collection for Ruqyah and protection, with references for each passage. Collections differ; this is not an exhaustive or prescribed sequence. Each reading link opens the full surah at the indicated starting ayah.</p>
             @if ($apiUnavailable)

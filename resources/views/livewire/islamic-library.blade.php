@@ -1,6 +1,6 @@
 <div>
     <x-ui.site-header />
-    <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-library-reader wire:ignore>
+    <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:px-10" data-library-reader wire:ignore>
         <h1 class="text-3xl font-extrabold tracking-tight text-tilawa-ink">Islamic library</h1>
         <div data-book-list class="mt-7 grid gap-5 md:grid-cols-2">
             @foreach ($books as $book)

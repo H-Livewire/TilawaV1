@@ -1,13 +1,13 @@
 <div>
     <x-ui.site-header />
     <main>
-    <section class="border-b border-tilawa-line bg-tilawa-paper px-6 py-10 md:px-12">
-        <div class="mx-auto max-w-6xl">
+    <section class="border-b border-tilawa-line bg-tilawa-paper py-8 sm:py-10">
+        <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
             <p class="text-xs font-bold uppercase tracking-[0.18em] text-tilawa-teal-dark dark:text-tilawa-teal-light">Read at your own pace</p>
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-tilawa-ink md:text-4xl">The Qur'an, within reach.</h1>
             <p class="mt-3 text-sm leading-7 text-tilawa-sub">Explore all 114 surahs, browse by juz, or find a printed page. Open a surah to begin reading.</p>
-        </div>
-        <div class="relative mx-auto mt-6 flex max-w-2xl flex-col items-center gap-4">
+
+            <div class="relative mt-6 flex max-w-2xl flex-col items-start gap-4">
             @if ($tab === 'surah')
                 <div class="flex w-full items-center gap-2.5 rounded-2xl border border-tilawa-line bg-tilawa-surface px-4.5 py-3.5 shadow-lg focus-within:border-tilawa-teal-dark focus-within:ring-2 focus-within:ring-tilawa-teal-dark dark:focus-within:border-tilawa-teal-light dark:focus-within:ring-tilawa-teal-light">
                     <x-ui.icon name="search" class="h-[18px] w-[18px] shrink-0 text-tilawa-sub/70" />
@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <div class="flex flex-wrap items-center justify-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-semibold text-tilawa-sub">Popular:</span>
                 @foreach ($this->popularSurahDetails as $surah)
                     <a href="{{ route('surah.show', $surah['number']) }}" wire:navigate
@@ -26,14 +26,17 @@
                     </a>
                 @endforeach
             </div>
+            </div>
         </div>
     </section>
 
+    {{-- Ayah of the Day + Continue reading: same left edge as the header, side by side on wide screens --}}
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10 grid gap-4 pt-6 lg:grid-cols-2">
     {{-- Ayah of the Day --}}
     @if ($this->dailyAyah)
-        <div class="px-6 pt-6 md:px-12">
+        <div>
             <a href="{{ route('surah.show', ['number' => $this->dailyAyah['surah'], 'ayah' => $this->dailyAyah['ayah']]) }}" wire:navigate
-                class="mx-auto block max-w-2xl rounded-2xl border border-tilawa-line bg-tilawa-surface px-5 py-4 shadow-sm transition hover:border-tilawa-teal hover:shadow-md">
+                class="block rounded-2xl border border-tilawa-line bg-tilawa-surface px-5 py-4 shadow-sm transition hover:border-tilawa-teal hover:shadow-md">
                 <div class="flex items-center justify-between gap-3">
                     <div class="text-xs font-bold uppercase tracking-wide text-tilawa-gold">Ayah of the Day</div>
                     <div class="text-xs font-semibold text-tilawa-sub">{{ $this->dailyAyah['reference'] }}</div>
@@ -42,16 +45,16 @@
                 <p class="mt-2 line-clamp-2 text-sm leading-6 text-tilawa-sub">{{ $this->dailyAyah['translation'] }}</p>
             </a>
             @auth
-                <div class="mx-auto mt-3 max-w-2xl"><x-daily-reminder compact /></div>
+                <div class="mt-3"><x-daily-reminder compact /></div>
             @endauth
         </div>
     @endif
 
     {{-- Continue reading --}}
     @if ($this->lastRead)
-        <div class="px-6 pt-6 md:px-12">
+        <div>
             <a href="{{ route('surah.show', ['number' => $this->lastRead['surah']['number'], 'ayah' => $this->lastRead['ayah']]) }}" wire:navigate
-                class="mx-auto flex max-w-2xl items-center gap-4 rounded-2xl border border-tilawa-line bg-tilawa-surface px-5 py-4 shadow-sm transition hover:border-tilawa-teal hover:shadow-md">
+                class="flex items-center gap-4 rounded-2xl border border-tilawa-line bg-tilawa-surface px-5 py-4 shadow-sm transition hover:border-tilawa-teal hover:shadow-md">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tilawa-teal-light text-tilawa-teal-dark">
                     <x-ui.icon name="book" class="h-5 w-5" />
                 </div>
@@ -66,9 +69,10 @@
             </a>
         </div>
     @endif
+    </div>
 
     {{-- Tabs --}}
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-6 pt-6 md:px-10">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10 flex flex-wrap items-center gap-3 pt-6">
         <button wire:click="setTab('surah')"
             class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-sm transition {{ $tab === 'surah' ? 'bg-tilawa-amber text-[#7A5B14]' : 'bg-tilawa-surface text-tilawa-sub' }}">
             <x-ui.icon name="book" class="h-[17px] w-[17px]" /> Surah
@@ -93,7 +97,7 @@
     </div>
 
     {{-- Content --}}
-    <div class="mx-auto max-w-6xl px-6 py-6 md:px-10 md:py-8">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10 py-6 md:py-8">
         @if ($tab === 'surah')
             @if (count($this->surahs) === 0)
                 <p class="py-16 text-center text-sm text-tilawa-sub">No surahs match "{{ $search }}".</p>

@@ -1,5 +1,5 @@
 <footer class="bg-[#ddf2f0] text-[#12313a]">
-    <div class="mx-auto max-w-6xl px-6 pb-7 pt-14 sm:px-8 lg:px-10">
+    <div class="mx-auto max-w-6xl px-5 pb-7 pt-14 sm:px-8 lg:px-10">
         <div class="grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr]">
             <div>
                 <a href="{{ route('landing') }}" wire:navigate class="inline-flex items-center gap-3 text-2xl font-extrabold tracking-tight">
