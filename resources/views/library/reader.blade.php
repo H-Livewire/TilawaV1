@@ -6,6 +6,7 @@
     <title>{{ $book['title'] }} — {{ $book['language'] }} — Tilawa reader</title>
     <script>try { if (localStorage.getItem('tilawa-theme') === 'dark' || (!localStorage.getItem('tilawa-theme') && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); } catch (e) {}</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-ui.analytics :livewire="false" />
 </head>
 <body class="pdf-reader-body" data-pdf-reader data-pdf-url="{{ $book['pdf_url'] }}" data-book-title="{{ $book['title'] }}" data-wasm-url="{{ asset('vendor/pdfjs/wasm') }}/">
             <div class="reader-shell">

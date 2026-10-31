@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mushaf — Tilawa</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-ui.analytics :livewire="false" />
 </head>
 <body data-mushaf-frame>
     <main class="mushaf-shell">
