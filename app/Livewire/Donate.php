@@ -36,7 +36,7 @@ class Donate extends Component
         } catch (Throwable $e) {
             report($e);
             $donation->update(['status' => 'failed']);
-            $this->addError('amount', 'Payments are unavailable right now. Please try again shortly.');
+            $this->addError('amount', 'Payments are unavailable right now. Please try again shortly.'.($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'ClickPesa') ? ' ['.$e->getMessage().']' : ''));
 
             return;
         }

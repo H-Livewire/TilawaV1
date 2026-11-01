@@ -34,7 +34,7 @@ class ClickPesa
         $link = $response->json('checkoutLink');
 
         if (! $response->successful() || ! is_string($link) || $link === '') {
-            throw new RuntimeException('ClickPesa checkout failed: '.$response->status().' '.$response->body());
+            throw new RuntimeException('ClickPesa checkout failed ('.$response->status().'): '.($response->json('message') ?? substr($response->body(), 0, 200)), $response->status());
         }
 
         return $link;
@@ -91,7 +91,7 @@ class ClickPesa
             $token = $response->json('token');
 
             if (! $response->successful() || ! is_string($token) || $token === '') {
-                throw new RuntimeException('ClickPesa token failed: '.$response->status());
+                throw new RuntimeException('ClickPesa token failed ('.$response->status().'): '.($response->json('message') ?? substr($response->body(), 0, 200)), $response->status());
             }
 
             return $token; // already includes the "Bearer " prefix
