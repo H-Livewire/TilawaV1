@@ -15,7 +15,7 @@ class Donate extends Component
 {
     public function pay(string $amount, string $method, ClickPesa $clickPesa)
     {
-        $min = (int) config('services.clickpesa.min_amount', 1000);
+        $min = (int) config('services.clickpesa.min_amount', 100);
 
         $data = Validator::make(
             ['amount' => preg_replace('/\D/', '', $amount), 'method' => $method],
@@ -48,6 +48,6 @@ class Donate extends Component
 
     public function render()
     {
-        return view('livewire.donate', ['min' => (int) config('services.clickpesa.min_amount', 1000)]);
+        return view('livewire.donate', ['min' => (int) config('services.clickpesa.min_amount', 100)]);
     }
 }

@@ -41,7 +41,7 @@ test('a valid donation creates a record and redirects to the ClickPesa checkout'
 test('amounts below the minimum are rejected without calling ClickPesa', function () {
     Http::preventStrayRequests();
 
-    Livewire::test(Donate::class)->call('pay', '500', 'mobile')->assertHasErrors('amount');
+    Livewire::test(Donate::class)->call('pay', '50', 'mobile')->assertHasErrors('amount');
     expect(Donation::count())->toBe(0);
 });
 
