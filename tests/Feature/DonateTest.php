@@ -27,7 +27,7 @@ test('a valid donation creates a record and redirects to the ClickPesa checkout'
         '*/third-parties/checkout-link/generate-checkout-url' => Http::response(['checkoutLink' => 'https://checkout.clickpesa.com/pay/xyz']),
     ]);
 
-    Livewire::test(Donate::class)->call('pay', '10,000', 'mobile')->assertRedirect('https://checkout.clickpesa.com/pay/xyz');
+    Livewire::test(Donate::class)->call('pay', '10,000', 'mobile', 'TZS')->assertRedirect('https://checkout.clickpesa.com/pay/xyz');
 
     $donation = Donation::first();
     expect($donation->amount)->toBe(10000)->and($donation->currency)->toBe('TZS')->and($donation->status)->toBe('pending')
@@ -41,14 +41,14 @@ test('a valid donation creates a record and redirects to the ClickPesa checkout'
 test('amounts below the minimum are rejected without calling ClickPesa', function () {
     Http::preventStrayRequests();
 
-    Livewire::test(Donate::class)->call('pay', '499', 'mobile')->assertHasErrors('amount');
+    Livewire::test(Donate::class)->call('pay', '499', 'mobile', 'TZS')->assertHasErrors('amount');
     expect(Donation::count())->toBe(0);
 });
 
 test('a ClickPesa failure shows an error and marks the donation failed', function () {
     Http::fake(['*' => Http::response(['message' => 'boom'], 500)]);
 
-    Livewire::test(Donate::class)->call('pay', '5000', 'card')->assertHasErrors('amount')->assertNoRedirect();
+    Livewire::test(Donate::class)->call('pay', '5000', 'mobile', 'USD')->assertHasErrors('amount')->assertNoRedirect();
     expect(Donation::first()->status)->toBe('failed');
 });
 
@@ -70,4 +70,22 @@ test('the callback rejects a bad checksum when a checksum key is configured', fu
     $this->postJson(route('donations.callback'), $payload + ['checksum' => 'nope'])->assertForbidden();
     $this->postJson(route('donations.callback'), $payload + ['checksum' => ClickPesa::checksum('secret', $payload)])->assertOk();
     expect(Donation::first()->status)->toBe('paid');
+});
+
+test('card payments are not available yet', function () {
+    Http::preventStrayRequests();
+
+    Livewire::test(Donate::class)->call('pay', '5000', 'card', 'TZS')->assertHasErrors('method');
+    expect(Donation::count())->toBe(0);
+});
+
+test('USD donations are sent to ClickPesa in USD with the USD minimum', function () {
+    Http::fake([
+        '*/third-parties/generate-token' => Http::response(['token' => 'Bearer abc']),
+        '*/third-parties/checkout-link/generate-checkout-url' => Http::response(['checkoutLink' => 'https://checkout.clickpesa.com/pay/usd']),
+    ]);
+
+    Livewire::test(Donate::class)->call('pay', '499', 'mobile', 'USD')->assertHasErrors('amount');
+    Livewire::test(Donate::class)->call('pay', '500', 'mobile', 'USD')->assertRedirect('https://checkout.clickpesa.com/pay/usd');
+    expect(Donation::first()->currency)->toBe('USD');
 });

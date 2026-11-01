@@ -13,21 +13,22 @@ use Throwable;
 #[Layout('layouts.app', ['title' => 'Support Tilawa'])]
 class Donate extends Component
 {
-    public function pay(string $amount, string $method, ClickPesa $clickPesa)
+    public function pay(string $amount, string $method, string $currency, ClickPesa $clickPesa)
     {
-        $min = (int) config('services.clickpesa.min_amount', 500);
+        $currency = strtoupper($currency);
+        $min = (int) config($currency === 'USD' ? 'services.clickpesa.min_amount_usd' : 'services.clickpesa.min_amount', 500);
 
         $data = Validator::make(
-            ['amount' => preg_replace('/\D/', '', $amount), 'method' => $method],
-            ['amount' => ['required', 'integer', 'min:'.$min, 'max:5000000'], 'method' => ['required', 'in:mobile,card']],
-            ['amount.min' => 'The minimum donation is TZS '.number_format($min).'.', 'amount.required' => 'Enter an amount.', 'amount.integer' => 'Enter a valid amount.', 'amount.max' => 'That amount is too large.'],
+            ['amount' => preg_replace('/\D/', '', $amount), 'method' => $method, 'currency' => $currency],
+            ['amount' => ['required', 'integer', 'min:'.$min, 'max:5000000'], 'method' => ['required', 'in:mobile'], 'currency' => ['required', 'in:TZS,USD']],
+            ['amount.min' => 'The minimum donation is '.$currency.' '.number_format($min).'.', 'method.in' => 'Card payments are coming soon. Please use Mobile Network.', 'amount.required' => 'Enter an amount.', 'amount.integer' => 'Enter a valid amount.', 'amount.max' => 'That amount is too large.'],
         )->validate();
 
         $donation = Donation::create([
             'reference' => 'TLW'.strtoupper(Str::random(14)),
             'user_id' => auth()->id(),
             'amount' => (int) $data['amount'],
-            'currency' => 'TZS',
+            'currency' => $data['currency'],
             'method' => $data['method'],
         ]);
 
@@ -48,6 +49,9 @@ class Donate extends Component
 
     public function render()
     {
-        return view('livewire.donate', ['min' => (int) config('services.clickpesa.min_amount', 500)]);
+        return view('livewire.donate', [
+            'min' => (int) config('services.clickpesa.min_amount', 500),
+            'minUsd' => (int) config('services.clickpesa.min_amount_usd', 500),
+        ]);
     }
 }

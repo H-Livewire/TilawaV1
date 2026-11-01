@@ -1,6 +1,8 @@
 <div class="min-h-screen bg-tilawa-surface text-tilawa-ink"
     x-data="{
-        amount: '10,000', method: 'mobile', open1: true, open2: true, busy: false,
+        amount: '10,000', method: 'mobile', currency: 'TZS', cmenu: false, soon: false, open1: true, open2: true, busy: false, min: {{ $min }}, minUsd: {{ $minUsd }},
+        tz: 'background:linear-gradient(135deg,#1eb53a 0 40%,#000 40% 60%,#00a3dd 60%)',
+        us: 'background:linear-gradient(#3c3b6e,#3c3b6e) 0 0/50% 55% no-repeat,repeating-linear-gradient(#b22234 0 1.5px,#fff 1.5px 3px)',
         fmt() { const v = this.amount.replace(/\D/g, ''); this.amount = v ? Number(v).toLocaleString('en-US') : ''; },
     }"
     x-on:livewire-upload-error.window="busy = false">
@@ -29,12 +31,20 @@
                 <div class="flex items-center rounded-lg border border-tilawa-line py-2 pl-4 pr-2">
                     <input id="amount" type="text" inputmode="numeric" autocomplete="off" x-model="amount" @input="fmt()"
                         class="min-w-0 flex-1 border-0 bg-transparent p-0 text-lg font-bold text-tilawa-ink outline-none focus:ring-0" />
-                    <span class="flex items-center gap-2 rounded-lg bg-tilawa-paper px-3 py-3 text-sm font-bold">
-                        <span class="inline-block h-5 w-5 rounded-full" style="background:linear-gradient(135deg,#1eb53a 0 40%,#000 40% 60%,#00a3dd 60%)"></span>TZS
-                    </span>
+                    <div class="relative" @click.outside="cmenu = false" @keydown.escape="cmenu = false">
+                        <button type="button" @click="cmenu = !cmenu" aria-haspopup="listbox" :aria-expanded="cmenu" class="flex items-center gap-2 rounded-lg bg-tilawa-paper px-3 py-3 text-sm font-bold">
+                            <span class="inline-block h-5 w-5 rounded-full" :style="currency === 'TZS' ? tz : us"></span>
+                            <span x-text="currency"></span>
+                            <svg class="h-3.5 w-3.5 text-tilawa-sub" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <ul x-show="cmenu" x-cloak role="listbox" class="absolute right-0 top-full z-10 mt-1.5 min-w-[7.5rem] overflow-hidden rounded-lg border border-tilawa-line bg-tilawa-surface shadow-lg">
+                            <li role="option"><button type="button" @click="currency = 'TZS'; cmenu = false" class="flex w-full items-center gap-2 px-4 py-3 text-sm font-bold hover:bg-tilawa-paper"><span class="inline-block h-5 w-5 rounded-full" :style="tz"></span>TZS</button></li>
+                            <li role="option"><button type="button" @click="currency = 'USD'; cmenu = false" class="flex w-full items-center gap-2 px-4 py-3 text-sm font-bold hover:bg-tilawa-paper"><span class="inline-block h-5 w-5 rounded-full" :style="us"></span>USD</button></li>
+                        </ul>
+                    </div>
                 </div>
                 @error('amount') <p class="mt-2 text-sm font-semibold text-red-600" role="alert">{{ $message }}</p> @enderror
-                <p class="mt-2 text-xs text-tilawa-sub">Minimum TZS {{ number_format($min) }}.</p>
+                <p class="mt-2 text-xs text-tilawa-sub">Minimum <span x-text="currency"></span> <span x-text="(currency === 'USD' ? minUsd : min).toLocaleString('en-US')"></span>.</p>
             </div>
 
             {{-- 2. Payment method --}}
@@ -57,25 +67,32 @@
                     </span>
                     <span class="text-xs text-tilawa-sub"><span class="mb-1.5 block h-6 w-6 rounded-full" style="background:linear-gradient(135deg,#1eb53a 0 40%,#000 40% 60%,#00a3dd 60%)"></span>TZS</span>
                 </button>
-                <button type="button" @click="method = 'card'" :aria-pressed="method === 'card'"
-                    class="flex w-full items-center gap-4 rounded-md border bg-tilawa-surface px-4 py-5 text-left"
-                    :class="method === 'card' ? 'border-tilawa-teal ring-1 ring-tilawa-teal' : 'border-tilawa-line'">
+                <button type="button" @click="soon = true" aria-haspopup="dialog"
+                    class="flex w-full items-center gap-4 rounded-md border border-tilawa-line bg-tilawa-surface px-4 py-5 text-left">
                     <span class="flex w-[88px] shrink-0 items-center justify-center"><img src="{{ asset('images/payments/visa-mastercard.webp') }}" alt="Visa and Mastercard" class="h-auto w-[88px]" loading="lazy" /></span>
                     <span class="flex-1">
                         <span class="block text-[17px] font-bold">Pay with Visa Cards</span>
                         <span class="mt-2 block text-sm text-tilawa-sub">Pay with VISA, MasterCard, or UnionPay</span>
                     </span>
-                    <span class="text-xs text-tilawa-sub"><span class="mb-1.5 block h-6 w-6 rounded-full" style="background:linear-gradient(135deg,#b22234 0 50%,#3c3b6e 50%)"></span>TZS</span>
+                    <span class="text-xs text-tilawa-sub"><span class="mb-1.5 block h-6 w-6 rounded-full" style="background:linear-gradient(135deg,#1eb53a 0 40%,#000 40% 60%,#00a3dd 60%)"></span>TZS</span>
                 </button>
             </div>
         </div>
 
         <div class="sticky bottom-0 mt-4 flex justify-end border-t border-tilawa-line bg-tilawa-surface px-1 py-3">
-            <button type="button" @click="busy = true; $wire.pay(amount, method).then(() => busy = false)" :disabled="busy"
+            <button type="button" @click="busy = true; $wire.pay(amount, method, currency).then(() => busy = false)" :disabled="busy"
                 class="w-[62%] rounded-lg bg-tilawa-teal py-4 text-[17px] font-bold text-white shadow-md shadow-tilawa-teal/30 transition hover:brightness-105 disabled:opacity-70">
                 <span x-show="!busy">Make Payment</span><span x-show="busy" x-cloak>Please wait…</span>
             </button>
         </div>
         <p class="pb-8 text-center text-xs text-tilawa-sub">You will be taken to ClickPesa's secure page to complete payment.</p>
     </main>
+
+    <div x-show="soon" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" @keydown.escape.window="soon = false" @click.self="soon = false" role="dialog" aria-modal="true" aria-label="Coming soon">
+        <div class="max-w-xs rounded-2xl bg-tilawa-surface p-7 text-center shadow-xl">
+            <p class="text-xl font-extrabold">Coming soon</p>
+            <p class="mt-2 text-sm text-tilawa-sub">Visa and Mastercard payments will be available soon. Please use Mobile Network for now.</p>
+            <button type="button" @click="soon = false" class="mt-5 rounded-lg bg-tilawa-teal px-7 py-2.5 text-sm font-bold text-white">OK</button>
+        </div>
+    </div>
 </div>
