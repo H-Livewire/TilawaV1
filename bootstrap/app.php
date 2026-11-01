@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Behind Laravel Cloud / Cloudflare: trust the proxy so URLs and the scheme are right.
         $middleware->trustProxies(at: '*');
 
+        // ClickPesa posts payment results here (verified by checksum).
+        $middleware->validateCsrfTokens(except: ['donate/callback']);
+
         // The Mushaf and library readers are iframes of this same site.
         $middleware->web(append: [\App\Http\Middleware\AllowSameOriginFrames::class]);
     })

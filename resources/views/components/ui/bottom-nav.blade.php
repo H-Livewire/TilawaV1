@@ -1,6 +1,6 @@
 @php
     // Reading pages keep their own bottom recitation bar, and the landing page is a marketing page.
-    $hidden = request()->routeIs('landing', 'surah.show', 'page.show', 'juz.show', 'login', 'register', 'password.*');
+    $hidden = request()->routeIs('landing', 'surah.show', 'page.show', 'juz.show', 'login', 'register', 'donate', 'donate.thanks', 'password.*');
 
     $tabs = [
         ['Ruqyah', route('ruqyah'), request()->routeIs('ruqyah'),

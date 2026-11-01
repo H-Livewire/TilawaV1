@@ -1,6 +1,6 @@
 <footer class="bg-[#ddf2f0] text-[#12313a]">
     <div class="mx-auto max-w-6xl px-5 pb-7 pt-14 sm:px-8 lg:px-10">
-        <div class="grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr]">
+        <div class="grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
             <div>
                 <a href="{{ route('landing') }}" wire:navigate class="inline-flex items-center gap-3 text-2xl font-extrabold tracking-tight">
                     <x-ui.logo on-light />
@@ -30,6 +30,14 @@
                         <a href="{{ route('profile') }}" wire:navigate class="hover:text-[#084c55] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">My account</a>
                     @endguest
                 </nav>
+            </div>
+            <div>
+                <h2 class="text-xs font-bold uppercase tracking-[0.16em] text-[#12313a]">Support</h2>
+                <a href="{{ route('donate') }}" wire:navigate class="mt-5 inline-flex items-center gap-2 rounded-full bg-tilawa-teal px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-tilawa-teal/30 transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#116b75]">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.7 2.9 5 6.3 5c2 0 3.5 1.1 4.2 2.4h3C14.200 6.100 15.700 5 17.700 5c3.400 0 5.300 3.700 3.900 6.800C19.500 16.400 12 21 12 21z"/></svg>
+                    Donate
+                </a>
+                <p class="mt-3 max-w-[12rem] text-xs leading-5 text-[#36565c]">Help keep Tilawa free for everyone.</p>
             </div>
         </div>
         <div class="flex flex-col justify-between gap-4 border-t border-[#b3d5d2] pt-6 text-xs leading-6 text-[#36565c] md:flex-row">

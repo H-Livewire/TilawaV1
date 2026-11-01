@@ -42,6 +42,15 @@ return [
         ],
     ],
 
+    // ClickPesa hosted checkout for donations.
+    'clickpesa' => [
+        'base_url' => env('CLICKPESA_BASE_URL', 'https://api.clickpesa.com'),
+        'client_id' => env('CLICKPESA_CLIENT_ID'),
+        'api_key' => env('CLICKPESA_API_KEY'),
+        'checksum_key' => env('CLICKPESA_CHECKSUM_KEY'),
+        'min_amount' => (int) env('CLICKPESA_MIN_AMOUNT', 1000),
+    ],
+
     'quran' => [
         'base_url' => env('QURAN_API_BASE_URL', 'https://api.alquran.cloud/v1'),
         'arabic_edition' => env('QURAN_API_ARABIC_EDITION', 'quran-uthmani'),

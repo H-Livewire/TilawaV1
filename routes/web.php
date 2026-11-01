@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AyahOfTheDayController;
+use App\Http\Controllers\DonationCallbackController;
+use App\Livewire\Donate;
+use App\Livewire\DonateThanks;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\DailyAyahReminderController;
 use App\Http\Controllers\LibraryPdfController;
@@ -27,6 +30,10 @@ Route::get('/', Landing::class)->name('landing');
 
 Route::get('/terms', Terms::class)->name('terms');
 Route::get('/privacy', Privacy::class)->name('privacy');
+
+Route::get('/donate', Donate::class)->name('donate');
+Route::get('/donate/thanks', DonateThanks::class)->name('donate.thanks');
+Route::post('/donate/callback', DonationCallbackController::class)->middleware('throttle:60,1')->name('donations.callback');
 
 Route::get('/home', Home::class)->name('home');
 Route::get('/daily-ayah', DailyAyah::class)->name('daily-ayah');
