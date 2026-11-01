@@ -48,7 +48,7 @@ return [
         'client_id' => env('CLICKPESA_CLIENT_ID'),
         'api_key' => env('CLICKPESA_API_KEY'),
         'checksum_key' => env('CLICKPESA_CHECKSUM_KEY'),
-        'min_amount' => (int) env('CLICKPESA_MIN_AMOUNT', 100),
+        'min_amount' => (int) env('CLICKPESA_MIN_AMOUNT', 500),
     ],
 
     'quran' => [
